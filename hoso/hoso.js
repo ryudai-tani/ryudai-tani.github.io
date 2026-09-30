@@ -107,7 +107,6 @@ function render() {
   $("loadedBar").hidden = !has;
   $("result").hidden = !has;
   if (!has) return;
-  if (state.loadedAt) { const d = new Date(state.loadedAt); $("loadedMsg").textContent = `${d.getMonth() + 1}月${d.getDate()}日に読み込んだ成績表です。`; }
   const c = compute();
   const gpaCard = (label, g, key) => `<div class="gpa"><span class="label">${label}</span><span class="big num">${g.u ? fmt(g.p / g.u) : "－"}</span>`
     + `<span class="req">早期卒業 ${fmt(GOALS[0][key])}以上・修了 ${fmt(GOALS[1][key])}以上</span></div>`;
