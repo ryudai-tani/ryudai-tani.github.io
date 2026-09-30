@@ -127,7 +127,7 @@ function render() {
   const names = c.short.map(k => `<li>${esc(S[k].d.name)}：あと<span class="num">${S[k].need - S[k].eff}</span>単位</li>`).join("");
   sm.innerHTML = (done
     ? `<div class="big num">${c.total}<small>/ ${r.total}単位</small></div><div class="msg">卒業要件をすべて満たしています。</div>`
-    : `<div class="big num">${c.remain}<small>単位</small></div><div><div class="msg">卒業まで、あと${c.remain}単位です。足りない科目区分は${c.short.length}つです。</div><ul>${names}</ul></div>`)
+    : `<div class="big num"><small>あと</small>${c.remain}<small>単位</small></div><div><div class="msg">卒業まで、あと${c.remain}単位です。足りない科目区分は${c.short.length}つです。</div><ul>${names}</ul></div>`)
     + `<div class="totalbar" aria-hidden="true"><i style="width:${Math.min(100, c.total / r.total * 100)}%"></i></div>`;
   $("source").textContent = `${r.faculty} ${r.dept}（${r.year}年度入学）の卒業要件は、${r.source}で計算しています。`;
 }

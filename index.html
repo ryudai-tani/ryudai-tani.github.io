@@ -48,6 +48,8 @@ h2{font-size:1.1rem;margin:0}
 .drop .pick{align-self:flex-start;background:var(--accent);color:var(--surface);font-weight:700;padding:9px 18px;border-radius:8px}
 .howto{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;gap:12px}
 .howto ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:2px}
+.help{font-size:.88rem;color:var(--muted)}
+.help p{margin:6px 0 0}
 .safe{margin:0;font-size:.85rem;color:var(--muted)}
 .drop span{font-size:.85rem;color:var(--muted)}
 .drop input{position:absolute;width:1px;height:1px;opacity:0}
@@ -55,7 +57,7 @@ h2{font-size:1.1rem;margin:0}
 .status.ok{color:var(--ok)} .status.bad{color:var(--bad)}
 .summary{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:grid;grid-template-columns:auto 1fr;gap:6px 22px;align-items:center}
 .summary .big{font-size:2.4rem;line-height:1;font-weight:700}
-.summary .big small{font-size:1rem;font-weight:400;color:var(--muted);margin-left:4px}
+.summary .big small{font-size:1rem;font-weight:400;color:var(--muted);margin:0 4px}
 .summary.done{border-color:var(--ok);background:var(--ok-soft)}
 .summary .msg{font-weight:700}
 .summary ul{margin:4px 0 0;padding-left:1.2em;color:var(--muted);font-size:.9rem}
@@ -111,16 +113,22 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <section class="howto" aria-labelledby="howto-h">
     <h2 id="howto-h">使い方</h2>
     <ol>
-      <li>教務システムで成績表を開き、PDFで保存します。</li>
+      <li>いつもと同じ方法で、教務システムの成績表を開きます。</li>
+      <li>成績表のPDFを、スマホかパソコンに保存します。</li>
       <li>下の「成績表のPDFを選ぶ」を押して、保存したPDFを選びます。</li>
       <li>卒業まであと何単位か、どの科目区分が足りないかが表示されます。</li>
     </ol>
+    <details class="help">
+      <summary>スマホでPDFを保存するには</summary>
+      <p>iPhoneでは、成績表のPDFを開いて、共有のボタン（四角から上向きの矢印が出ているボタン）を押し、「"ファイル"に保存」を選びます。</p>
+      <p>Androidでは、成績表のPDFを開いて、ダウンロードのボタン（下向きの矢印のボタン）を押します。「ダウンロード」のフォルダに保存されます。</p>
+    </details>
     <label class="drop" id="drop">
       <span class="pick">成績表のPDFを選ぶ</span>
       <span>パソコンでは、PDFをここにドラッグしても読み込めます。</span>
       <input type="file" id="file" accept="application/pdf,.pdf">
     </label>
-    <p class="safe">読み込むのは、修得単位だけです。氏名・学籍番号・GPA・科目ごとの評価は読み込みません。PDFはこのスマホやパソコンの中だけで読み、インターネットには送りません。成績がほかの人に見られることはありません。</p>
+    <p class="safe">読み込むのは、修得単位だけです。氏名・学籍番号・生年月日・GPA・科目ごとの評価は読み込みません。PDFはこのスマホやパソコンの中だけで読み、インターネットには送りません。成績がほかの人に見られることはありません。</p>
   </section>
   <div class="status" id="status" hidden></div>
 
