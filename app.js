@@ -154,8 +154,6 @@ function render() {
   $("howto").hidden = state.fromPdf;
   $("loadedBar").hidden = !state.fromPdf;
   // いつ読み込んだ成績表かを出し、新しい成績が出たときに読み込み直せるようにする
-  const d = state.loadedAt ? new Date(state.loadedAt) : null;
-  const lm = $("loadedMsg"); if (lm) lm.textContent = d ? `${d.getMonth() + 1}月${d.getDate()}日に読み込んだ成績表です。` : "成績表を読み込みました。";
   if (!state.open) return;
   renderSelectors();
   $("sections").innerHTML = c.secTotals.map(t =>
@@ -185,60 +183,7 @@ function render() {
 }
 
 /* ---------- 成績表PDFの読み込み ---------- */
-function parseRecord(items) {
-  const text = items.map(i => i.s).join("\n");
-  // 所属の行（例：人文社会・国際法政・法学プログラム・特修法曹コース　2024）
-  const affItem = items.find(i => i.s.split("・").length >= 3 && !/^[［\[(（]/.test(i.s));
-  const aff = affItem ? affItem.s : null;
-  let year = null;
-  if (aff) {
-    const m = aff.match(/(20\d\d)$/);
-    const same = items.find(i => /^20\d\d$/.test(i.s) && Math.abs(i.y - affItem.y) <= 2 && i.x > affItem.x);
-    year = m ? Number(m[1]) : same ? Number(same.s) : null;
-  }
-  if (!year) { const d = items.find(i => /^20\d\d\/04\/01$/.test(i.s)); if (d) year = Number(d.s.slice(0, 4)); }
-  const cands = RULES.filter(x => aff ? aff.includes(x.match.faculty) && aff.includes(x.match.dept) : text.includes(x.match.dept));
-  if (!cands.length) return aff ? { error: `${aff.replace(/\s*20\d\d$/, "").split("・").slice(0, 2).join("・")}は、まだ対応していません。` } : null;
-  const r = cands.find(x => x.year === year);
-  if (!r) return { error: `${cands[0].dept}の${year}年度入学のルールは、まだありません。` };
-  if (!r.pdfSupported) return { rule: r, error: `${year}年度入学の成績表の読み込みには、まだ対応していません。学部・学科・入学年度を選んだので、成績表の修得単位を入力してください。` };
-  const prog = (r.programs.find(p => text.includes(p.match)) || r.programs[0]).id;
-  const earnedCols = items.filter(i => i.s === "修得単位").map(i => i.x).sort((a, b) => a - b);
-  if (!earnedCols.length) return null;
-  const nums = items.filter(i => /^\d+$/.test(i.s));
-  const value = label => {
-    const L = items.find(i => i.s === label);
-    if (!L) return null;
-    const col = earnedCols.find(x => x > L.x);
-    if (col === undefined) return null;
-    const hit = nums.find(n => Math.abs(n.y - L.y) <= 4 && n.x >= col - 6 && n.x <= col + 45);
-    return hit ? parseInt(hit.s, 10) : 0;
-  };
-  const v = {}; let found = 0, want = 0;
-  for (const [k, d0] of Object.entries(r.rows)) {
-    const d = { ...d0, ...((d0.program || {})[prog] || {}) };
-    if (!d.pdf) continue;
-    want++;
-    let sum = 0, any = false;
-    for (const lb of d.pdf) { const x = value(lb); if (x !== null) { sum += x; any = true; } }
-    v[k] = sum; if (any) found++;
-  }
-  if (found < want * 0.7) return null;
-  // 基礎社会保障法が成績表で「学科発展科目(法学)」の下にあれば、2単位をプログラム発展科目へ移す
-  let shahoMoved = 0;
-  if (r.shaho && prog === "law") {
-    const name = items.find(i => i.s === "基礎社会保障法");
-    if (name) {
-      const heads = items.filter(i => /^［.*］$/.test(i.s)).sort((a, b) => a.x - b.x || b.y - a.y);
-      // 同じ列で上にある見出し。列の先頭なら、左の列の最後の見出し
-      const sameCol = heads.filter(h => Math.abs(h.x - name.x) < 8 && h.y > name.y).sort((a, b) => a.y - b.y)[0];
-      const prevCol = heads.filter(h => h.x < name.x - 8).sort((a, b) => b.x - a.x || a.y - b.y)[0];
-      const head = sameCol || prevCol;
-      if (head && head.s.includes("学科発展") && (v.lawDev || 0) >= 2) { v.lawDev -= 2; v.progDev = (v.progDev || 0) + 2; shahoMoved = 2; }
-    }
-  }
-  return { rule: r, program: prog, v, shahoMoved };
-}
+// parseRecord は rules.js にある（法曹コースのページと共通）
 
 let pdfReady = null;
 function loadPdfJs() {

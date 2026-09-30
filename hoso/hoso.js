@@ -185,6 +185,17 @@ function parsePage(items) {
   return { courses, total };
 }
 
+// 元のページで、成績表をもう一度読み込まなくても使えるように保存する（元のページの readPdf と同じ形）
+function saveForMain(r) {
+  if (!r || r.error || !r.rule || !r.v) return;
+  let m = {};
+  try { m = JSON.parse(localStorage.getItem("tani-check-v4")) || {}; } catch (e) {}
+  m.data = m.data || {};
+  m.data[r.rule.id] = { v: { ...r.v }, shahoMoved: r.shahoMoved || 0 };
+  Object.assign(m, { ruleId: r.rule.id, program: r.program, open: true, fromPdf: true, plan: false, loadedAt: Date.now() });
+  try { localStorage.setItem("tani-check-v4", JSON.stringify(m)); } catch (e) {}
+}
+
 let pdfReady = null;
 function loadPdfJs() {
   if (pdfReady) return pdfReady;
@@ -205,16 +216,19 @@ async function readPdf(file) {
   try {
     await loadPdfJs();
     const doc = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
-    const courses = []; let total = null;
+    const courses = []; let total = null, main = null;
     for (let p = 1; p <= doc.numPages; p++) {
       const tc = await (await doc.getPage(p)).getTextContent();
       const items = tc.items.filter(i => i.str && i.str.trim()).map(i => ({ s: i.str.trim(), x: i.transform[4], y: i.transform[5] }));
       const r = parsePage(items);
       courses.push(...r.courses);
       if (r.total != null) total = r.total;
+      // 元のページ（卒業まであと何単位）の科目区分ごとの単位も読む
+      if (window.parseRecord && !(main && main.rule)) { try { main = window.parseRecord(items) || main; } catch (e) {} }
     }
     if (!courses.length) { setStatus("成績表の科目が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
     state = { courses, total, loadedAt: Date.now() };
+    saveForMain(main);
     save(); render();
     $("status").hidden = true;
     $("result").scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
