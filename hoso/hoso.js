@@ -171,7 +171,7 @@ function saveForMain(r) {
   try { m = JSON.parse(localStorage.getItem("tani-check-v4")) || {}; } catch (e) {}
   m.data = m.data || {};
   m.data[r.rule.id] = { v: { ...r.v }, shahoMoved: r.shahoMoved || 0 };
-  Object.assign(m, { ruleId: r.rule.id, program: r.program, open: true, fromPdf: true, plan: false, loadedAt: Date.now() });
+  Object.assign(m, { ruleId: r.rule.id, program: r.program, open: true, fromPdf: true, plan: false, loadedAt: Date.now(), hoso: true });
   try { localStorage.setItem("tani-check-v4", JSON.stringify(m)); } catch (e) {}
 }
 

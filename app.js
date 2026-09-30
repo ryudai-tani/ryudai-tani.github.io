@@ -8,7 +8,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 
 let saved = {};
 try { saved = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) {}
-let state = { ruleId: saved.ruleId || RULES[0].id, program: saved.program || null, data: saved.data || {}, open: !!saved.open, fromPdf: !!saved.fromPdf, plan: !!saved.plan, loadedAt: saved.loadedAt || null };
+let state = { ruleId: saved.ruleId || RULES[0].id, program: saved.program || null, data: saved.data || {}, open: !!saved.open, fromPdf: !!saved.fromPdf, plan: !!saved.plan, loadedAt: saved.loadedAt || null, hoso: !!saved.hoso };
 const RAW = {};
 function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
@@ -147,8 +147,9 @@ function pickRule(year, fac, dept) {
 }
 
 function render() {
-  // 国際法政学科・法学プログラムのときだけ、法曹コースのページを案内する
-  $("hosoLink").hidden = !(rule().dept === "国際法政学科" && program() === "law");
+  // 法曹コースのページを案内する（数字を入力しているときは、国際法政学科・法学プログラムのとき）
+  // 成績表を読み込んだときは、所属が特修法曹コースの人だけ
+  $("hosoLink").hidden = state.fromPdf ? !state.hoso : !(rule().dept === "国際法政学科" && program() === "law");
   const r = rule(), c = compute(), S = c.S, st = values();
   $("result").hidden = !state.open;
   $("manualLink").hidden = state.open;
@@ -213,9 +214,10 @@ async function saveCoursesForHoso(doc) {
       if (r.total != null) total = r.total;
       if (r.aff) aff = r.aff;
     }
-    if (!aff || !aff.includes("法曹") || !courses.length) return;
+    if (!aff || !aff.includes("法曹") || !courses.length) return false;
     localStorage.setItem("hoso-check-v1", JSON.stringify({ courses, total, aff, loadedAt: Date.now() }));
-  } catch (e) {}
+    return true;
+  } catch (e) { return false; }
 }
 async function readPdf(file) {
   if (!file) return;
@@ -223,7 +225,7 @@ async function readPdf(file) {
   try {
     await loadPdfJs();
     const doc = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
-    await saveCoursesForHoso(doc);
+    const isHoso = await saveCoursesForHoso(doc);
     let result = null;
     for (let p = doc.numPages; p >= 1 && !(result && (result.v || result.rule)); p--) {
       const tc = await (await doc.getPage(p)).getTextContent();
@@ -237,7 +239,7 @@ async function readPdf(file) {
     }
     if (!result || !result.rule) { setStatus("成績表の「単位修得状況」が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
     state.ruleId = result.rule.id; state.program = result.program;
-    state.data[result.rule.id] = { v: { ...result.v }, shahoMoved: result.shahoMoved || 0 }; state.open = true; state.fromPdf = true; state.plan = false; state.loadedAt = Date.now();
+    state.data[result.rule.id] = { v: { ...result.v }, shahoMoved: result.shahoMoved || 0 }; state.open = true; state.fromPdf = true; state.plan = false; state.loadedAt = Date.now(); state.hoso = !!isHoso;
     Object.keys(RAW).forEach(k => delete RAW[k]);
     save(); render();
     $("status").hidden = true;
