@@ -151,7 +151,7 @@ function parseRecord(items) {
   }
   if (!year) { const d = items.find(i => /^20\d\d\/04\/01$/.test(i.s)); if (d) year = Number(d.s.slice(0, 4)); }
   const cands = RULES.filter(x => aff ? aff.includes(x.match.faculty) && aff.includes(x.match.dept) : text.includes(x.match.dept));
-  if (!cands.length) return { error: aff ? `${aff.replace(/\s*20\d\d$/, "").split("・").slice(0, 2).join("・")}は、まだ対応していません。` : null };
+  if (!cands.length) return aff ? { error: `${aff.replace(/\s*20\d\d$/, "").split("・").slice(0, 2).join("・")}は、まだ対応していません。` } : null;
   const r = cands.find(x => x.year === year);
   if (!r) return { error: `${cands[0].dept}の${year}年度入学のルールは、まだありません。` };
   if (!r.pdfSupported) return { rule: r, error: `${year}年度入学の成績表の読み込みには、まだ対応していません。学部・学科・入学年度を選んだので、成績表の修得単位を入力してください。` };
@@ -211,13 +211,14 @@ async function readPdf(file) {
       if (result.rule) { state.ruleId = result.rule.id; state.program = result.program || null; state.open = true; save(); render(); }
       setStatus(result.error, false); return;
     }
-    if (!result) { setStatus("成績表の「単位修得状況」が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
+    if (!result || !result.rule) { setStatus("成績表の「単位修得状況」が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
     state.ruleId = result.rule.id; state.program = result.program;
     state.data[result.rule.id] = { v: { ...result.v } }; state.open = true;
     Object.keys(RAW).forEach(k => delete RAW[k]);
     save(); render();
     setStatus(`成績表を読み込みました（${result.rule.faculty} ${result.rule.dept}・${result.rule.year}年度入学）。振替を計算した結果を表示しています。`, true);
   } catch (e) {
+    console.error(e);
     setStatus("PDFを読み込めませんでした。ファイルを選び直すか、数字を入力してください。", false);
   }
 }
