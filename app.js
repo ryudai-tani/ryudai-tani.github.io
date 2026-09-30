@@ -87,9 +87,11 @@ function stateHtml(s) {
   if (!s.need) return "";
   const done = s.eff >= s.need;
   const pct = Math.min(100, s.eff / s.need * 100);
-  const pill = done ? `<span class="pill ok">達成</span>` : `<span class="pill bad">あと <span class="num">${s.need - s.eff}</span> 単位</span>`;
+  // 数字は成績表と同じ（振替の前）。達成かどうかは振替の後で決める
+  const pill = !done ? `<span class="pill bad">あと <span class="num">${s.need - s.eff}</span> 単位</span>`
+    : s.have < s.need ? `<span class="pill ok">振替で達成</span>` : `<span class="pill ok">達成</span>`;
   const min = s.d.role === "part" || s.d.role === "overlay";
-  return `${pill}<div class="bar"><i class="${done ? "ok" : ""}" style="width:${pct}%"></i></div><span class="req num">${s.d.sink || s.d.calc ? s.eff : Math.min(s.eff, s.need)} / ${s.need}${min || s.d.calc ? " 以上" : ""}</span>`;
+  return `${pill}<div class="bar"><i class="${done ? "ok" : ""}" style="width:${pct}%"></i></div><span class="req num">${s.have} / ${s.need}${min || s.d.calc ? " 以上" : ""}</span>`;
 }
 function rowHtml(k, s) {
   const d = s.d, st = values();
@@ -136,9 +138,15 @@ function render() {
   const sm = $("summary"), done = c.short.length === 0;
   sm.className = "summary" + (done ? " done" : "");
   const names = c.short.map(k => `<li>${esc(S[k].d.name)}：あと<span class="num">${S[k].need - S[k].eff}</span>単位</li>`).join("");
+  const rawTotal = c.secTotals.reduce((a, t) => a + t.raw, 0);
+  const why = !done && c.remain > r.total - rawTotal && c.short.length === 1
+    ? `<p class="why">合計は${rawTotal}単位ですが、${esc(S[c.short[0]].d.name)}が${S[c.short[0]].need - S[c.short[0]].eff}単位足りないため、あと${c.remain}単位です。</p>`
+    : !done && c.remain > r.total - rawTotal
+    ? `<p class="why">合計は${rawTotal}単位ですが、足りない科目区分があるため、あと${c.remain}単位です。</p>` : "";
   sm.innerHTML = (done
-    ? `<div class="big num">${c.total}<small>/ ${r.total}単位</small></div><div class="msg">卒業要件をすべて満たしています。</div>`
-    : `<div class="big num"><small>あと</small>${c.remain}<small>単位</small></div><div><div class="msg">卒業まで、あと${c.remain}単位です。足りない科目区分は${c.short.length}つです。</div><ul>${names}</ul></div>`)
+    ? `<div class="big num">${rawTotal}<small>/ ${r.total}単位</small></div><div class="msg">卒業要件をすべて満たしています。</div>`
+    : `<div class="big num"><small>あと</small>${c.remain}<small>単位</small></div><div><div class="msg">卒業まで、あと${c.remain}単位です。</div><ul>${names}</ul></div>`)
+    + `<div class="sumline"><span>合計</span><span class="num">${rawTotal} / ${r.total}</span></div>${why}`
     + `<div class="totalbar" aria-hidden="true"><i style="width:${Math.min(100, c.total / r.total * 100)}%"></i></div>`;
   $("source").textContent = `${r.faculty} ${r.dept}（${r.year}年度入学）の卒業要件は、${r.source}で計算しています。`;
   $("transfer").textContent = `選択科目の要件を超えた単位と、共通教育の要件を超えた単位（${r.commonExcess.cap}単位まで）は、専門自由科目に振り替えます。` + (r.transferNote || "");
