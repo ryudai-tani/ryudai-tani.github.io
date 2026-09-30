@@ -113,7 +113,7 @@ function rowHtml(k, s) {
   const det = d.list ? `<details><summary>対象の科目</summary><p>${esc(d.list)}</p></details>` : "";
   const pv = (st.plan || {})[k] || "";
   const planField = state.plan && !d.calc
-    ? `<label class="planrow">これから修得する予定<input id="pl-${k}" type="number" inputmode="numeric" min="0" step="1" value="${pv}" placeholder="0">単位</label>` : "";
+    ? `<label class="planrow">これから修得する予定<select id="pl-${k}">${Array.from({ length: 21 }, (_, n) => `<option value="${n}"${n === (pv || 0) ? " selected" : ""}>${n}</option>`).join("")}</select>単位</label>` : "";
   return `<div class="row${d.calc ? " calc" : ""}"><div class="name">${esc(d.name)}${d.hint ? `<small>${esc(d.hint)}</small>` : ""}</div>${field}<div class="state">${stateHtml(s)}</div>${planField}${moves}${det}</div>`;
 }
 
@@ -260,7 +260,7 @@ async function readPdf(file) {
 }
 
 /* ---------- 操作 ---------- */
-$("sections").addEventListener("input", e => {
+const onEdit = e => {
   const el = e.target;
   if (!el.id) return;
   const st = values();
@@ -275,7 +275,9 @@ $("sections").addEventListener("input", e => {
   save();
   const id = el.id; render();
   const again = $(id); if (again) again.focus();
-});
+};
+$("sections").addEventListener("input", onEdit);
+$("sections").addEventListener("change", e => { if (e.target.id && e.target.id.startsWith("pl-")) onEdit(e); });
 $("sel-prog").addEventListener("change", e => { state.program = e.target.value; save(); render(); });
 $("sel-year").addEventListener("change", e => pickRule(e.target.value, rule().faculty, rule().dept));
 $("sel-fac").addEventListener("change", e => pickRule(rule().year, e.target.value, rule().dept));
