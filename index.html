@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="琉球大学 人文社会学部 国際法政学科の成績表PDFを読み込み、振替を計算して、卒業まであと何単位かを表示します。">
-<title>あと何単位？ 国際法政学科</title>
+<meta name="description" content="琉球大学の成績表のPDFを読み込み、振替を計算して、卒業まであと何単位かを表示します。">
+<title>あと何単位？</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
@@ -45,7 +45,10 @@ h2{font-size:1.1rem;margin:0}
 .btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:.88rem;padding:7px 12px;border-radius:8px;cursor:pointer}
 .drop{display:flex;flex-direction:column;gap:6px;border:1.5px dashed var(--accent);background:var(--accent-soft);border-radius:12px;padding:16px 18px;cursor:pointer}
 .drop.over{background:var(--surface)}
-.drop strong{color:var(--accent)}
+.drop .pick{align-self:flex-start;background:var(--accent);color:var(--surface);font-weight:700;padding:9px 18px;border-radius:8px}
+.howto{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;gap:12px}
+.howto ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:2px}
+.safe{margin:0;font-size:.85rem;color:var(--muted)}
 .drop span{font-size:.85rem;color:var(--muted)}
 .drop input{position:absolute;width:1px;height:1px;opacity:0}
 .status{font-size:.88rem;font-weight:700}
@@ -91,313 +94,60 @@ details p{margin:4px 0}
   .row .state{grid-column:1/-1}
   .summary{grid-template-columns:1fr}
 }
+#sections{display:flex;flex-direction:column;gap:22px}
+.pickers{display:flex;flex-wrap:wrap;gap:10px}
+.pickers label{display:flex;flex-direction:column;gap:3px;font-size:.8rem;color:var(--muted)}
+.pickers select{font:inherit;font-size:.95rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:9em}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
 </head>
 <body>
-
 <div class="wrap">
   <header>
     <h1>あと何単位？</h1>
-    <p class="sub">人文社会学部 国際法政学科。成績表を読み込むと、足りない単位と振替を計算します。</p>
+    <p class="sub">琉球大学の成績表を読み込むと、卒業まであと何単位かと、振替の結果を表示します。</p>
   </header>
 
-  <label class="drop" id="drop">
-    <strong>成績表のPDFを選ぶ</strong>
-    <span>教務システムからダウンロードした成績表（Record-Confirm.pdf）を選ぶか、ここにドラッグしてください。区分ごとの修得単位だけを読み込み、氏名・学籍番号は読み込みません。ファイルはこのブラウザの中で読み、どこにも送りません。</span>
-    <input type="file" id="file" accept="application/pdf,.pdf">
-  </label>
+  <section class="howto" aria-labelledby="howto-h">
+    <h2 id="howto-h">使い方</h2>
+    <ol>
+      <li>教務システムで成績表を開き、PDFで保存します。</li>
+      <li>下の「成績表のPDFを選ぶ」を押して、保存したPDFを選びます。</li>
+      <li>卒業まであと何単位か、どの区分が足りないかが表示されます。</li>
+    </ol>
+    <label class="drop" id="drop">
+      <span class="pick">成績表のPDFを選ぶ</span>
+      <span>パソコンでは、PDFをここにドラッグしても読み込めます。</span>
+      <input type="file" id="file" accept="application/pdf,.pdf">
+    </label>
+    <p class="safe">読み込むのは、区分ごとの修得単位だけです。氏名・学籍番号は読み込みません。PDFはこのスマホやパソコンの中だけで読み、インターネットには送りません。成績がほかの人に見られることはありません。</p>
+  </section>
   <div class="status" id="status" hidden></div>
 
+  <div class="pickers">
+    <label>学部<select id="sel-fac"></select></label>
+    <label>学科<select id="sel-dept"></select></label>
+    <label>入学年度<select id="sel-year"></select></label>
+  </div>
   <div class="controls">
-    <div class="seg" role="group" aria-label="プログラム">
-      <button type="button" id="p-law" aria-pressed="true">法学プログラム</button>
-      <button type="button" id="p-pol" aria-pressed="false">政治・国際関係学プログラム</button>
-    </div>
+    <div class="seg" role="group" aria-label="プログラム" id="programs"></div>
     <button type="button" class="btn" id="clear">すべて0にする</button>
   </div>
 
-  <div class="example" id="exampleNote">入っている数字は例です。成績表を読み込むか、成績表の「単位修得状況」の修得単位を入力してください。</div>
+  <div class="example" id="exampleNote">入っている数字は例です。成績表を読み込むか、成績表の「単位修得状況」にある修得単位を入力してください。</div>
 
   <div class="summary" id="summary"></div>
 
-  <section>
-    <div class="sechead"><h2>専門教育科目</h2><span class="num" id="profSum"></span></div>
-    <div id="prof"></div>
-  </section>
-
-  <section>
-    <div class="sechead"><h2>共通教育科目</h2><span class="num" id="commSum"></span></div>
-    <div id="comm"></div>
-  </section>
+  <div id="sections"></div>
 
   <div class="note">
-    <p>卒業要件は、人文社会学部規程の別表（国際法政学科）で計算しています。</p>
-    <p>成績表の「単位修得状況」は、振替をしない単位数です。このページでは振替を自動で計算します。選択科目の要件を超えた単位と、共通教育の要件を超えた単位（10単位まで）は、専門自由科目に回します。学科発展科目で所属プログラムの系が16単位を超えた分は、プログラム発展科目に回します。</p>
-    <p>最終的な判定は、所属学部の事務窓口で確認してください。</p>
+    <p id="source"></p>
+    <p>成績表の「単位修得状況」は、振替をしない単位数です。このページでは、便覧の振替を自動で計算します。</p>
+    <p>対応している学科は、まだ一部です。最終的な判定は、所属学部の事務窓口で確認してください。</p>
   </div>
 </div>
-
+<script src="rules.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-const PEACE_BASE = "共生社会入門・共生哲学・社会学原論Ⅰ・社会福祉原論Ⅰ・心理学概論Ⅰ・マス・コミ原論Ⅰ・琉球アジア研究概論";
-const LAW_DEV = "憲法Ⅰ（人権）・憲法Ⅱ（統治）・民法Ⅰ（総則）・民法Ⅱ（物権）・刑法総論・刑事手続と人権・講義国際法・基礎行政法・民法Ⅲ（債権総論）・刑事政策・民法Ⅳ（債権各論）・基礎社会保障法";
-const POL_DEV = "政治過程論・公共政策学・政治思想史・日本政治外交史Ⅰ・日本政治外交史Ⅱ・行政学・地方自治論・国際関係史・国際政治学Ⅰ・国際政治学Ⅱ・比較政治学Ⅰ・比較政治学Ⅱ・国際社会学";
-const PEACE_GROUP = "戦争と平和の諸問題・西洋思想と日本・中国の思想・環境の哲学・比較思想文化論・宗教と世界・人間と宗教・環境問題・総合環境学概論・環境と文学・平和論・核の科学・女性と社会・沖縄の基地と戦跡Ⅰ・Ⅱ・琉球の文学・琉球の自然・琉球の自然保護・沖縄のサンゴ礁・琉球弧の自然誌・琉球の地理・現代の国際関係・琉球アジア研究入門・沖縄の政治と社会・うちなーぐちあしび・沖縄の学力と教育・琉球語入門Ⅰ・Ⅱ・沖縄の歴史入門・琉球学入門・琉球の自然と人・現代沖縄地域論";
-
-const EXAMPLE = {kiban:6,peace:6,gakka:4,lawDev:18,polDev:4,progKiban:0,progDev:8,free:2,
-  health:2,jinbun:4,shakai:2,shizen:4,sogo:2,ryudai:4,career:0,joho:2,lang:12,peaceGroup:6};
-const KEYS = Object.keys(EXAMPLE);
-const STORE = "sotsugyo-kokusai-hosei-v2";
-
-let state = {program:"law", v:{...EXAMPLE}, example:true};
-try{ const s = JSON.parse(localStorage.getItem(STORE)); if(s && s.v){ state = {program:s.program||"law", v:{...EXAMPLE,...s.v}, example:!!s.example}; } }catch(e){}
-function save(){ try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(e){} }
-
-const pos = x => Math.max(0, x);
-const RAW = {};
-
-function compute(){
-  const v = state.v, law = state.program === "law";
-  const own = law ? v.lawDev : v.polDev, other = law ? v.polDev : v.lawDev;
-  const ownName = law ? "法学系" : "政治・国際関係学系", otherName = law ? "政治・国際関係学系" : "法学系";
-  const R = {};
-  const toFree = [];
-  R.kiban = {have:v.kiban, need:6};
-  R.peace = {have:Math.min(v.peace,4), need:4, moves:[]};
-  if(v.peace>4){ toFree.push(v.peace-4); R.peace.moves.push(`4単位を超えた${v.peace-4}単位を専門自由科目に回しました`); }
-  R.gakka = {have:v.gakka, need:4};
-  R.own = {have:Math.min(own,16), need:16, moves:[]};
-  const ownOver = pos(own-16);
-  if(ownOver) R.own.moves.push(`16単位を超えた${ownOver}単位をプログラム発展科目に回しました`);
-  R.other = {have:Math.min(other,4), need:4, moves:[]};
-  if(other>4){ toFree.push(other-4); R.other.moves.push(`4単位を超えた${other-4}単位を専門自由科目に回しました`); }
-  R.progKiban = {have:v.progKiban, need: law?8:12};
-  const pd = v.progDev + ownOver;
-  R.progDev = {have:Math.min(pd,22), need:22, moves:[]};
-  if(ownOver) R.progDev.moves.push(`学科発展科目（${ownName}）から${ownOver}単位を受け取りました`);
-  if(pd>22){ toFree.push(pd-22); R.progDev.moves.push(`22単位を超えた${pd-22}単位を専門自由科目に回しました`); }
-
-  const misc = v.jinbun+v.shakai+v.shizen+v.sogo+v.ryudai+v.career+v.joho;
-  R.health = {have:Math.min(v.health,2), need:2};
-  R.jinbun = {have:v.jinbun, need:2, min:true};
-  R.shakai = {have:v.shakai, need:2, min:true};
-  R.shizen = {have:v.shizen, need:2, min:true};
-  R.joho = {have:v.joho, need:2, min:true};
-  R.sogo = {have:v.sogo, need:0}; R.ryudai = {have:v.ryudai, need:0}; R.career = {have:v.career, need:0};
-  R.lang = {have:Math.min(v.lang,12), need:12};
-  R.peaceGroup = {have:v.peaceGroup, need:6, min:true};
-  let commExcess;
-  if(law){
-    R.other20 = {have:Math.min(misc,20), need:20, total:misc};
-    commExcess = pos(v.health-2)+pos(v.lang-12)+pos(misc-20);
-  }else{
-    const pool = misc+v.lang;
-    R.other20 = {have:Math.min(pool,32), need:32, total:pool};
-    commExcess = pos(v.health-2)+pos(pool-32);
-  }
-  const commMoved = Math.min(commExcess,10);
-  const commTotal = v.health+misc+v.lang;
-  const commCounted = commTotal - commMoved;
-  if(commMoved) R.other20.moves = [`共通教育の要件を超えた${commMoved}単位を専門自由科目に回しました${commExcess>10?`（上限10単位。残り${commExcess-10}単位は回せません）`:""}`];
-
-  const freeTotal = v.free + toFree.reduce((a,b)=>a+b,0) + commMoved;
-  R.free = {have:freeTotal, need: law?26:22, moves:[]};
-  const recv = [];
-  if(v.peace>4) recv.push(`平和共生・沖縄理解基盤科目 ${v.peace-4}`);
-  if(other>4) recv.push(`学科発展科目（${otherName}） ${other-4}`);
-  if(pd>22) recv.push(`プログラム発展科目 ${pd-22}`);
-  if(commMoved) recv.push(`共通教育 ${commMoved}`);
-  if(recv.length) R.free.moves.push(`振替で受け取った単位：${recv.join("・")}`);
-
-  const profCounted = R.kiban.have+R.peace.have+R.gakka.have+R.own.have+R.other.have+R.progKiban.have+R.progDev.have+freeTotal;
-  const total = profCounted + commCounted;
-  const reqRows = ["kiban","peace","gakka","own","other","progKiban","progDev","free","health","other20","jinbun","shakai","shizen","joho","peaceGroup","lang"];
-  const short = reqRows.filter(k => R[k].have < R[k].need);
-  const gap = k => pos(R[k].need - R[k].have);
-  // 単位を足さないと埋まらない分（区分の重なりを二重に数えない）
-  const subMin = gap("jinbun")+gap("shakai")+gap("shizen")+gap("joho");
-  const needMore = ["kiban","peace","gakka","own","other","progKiban","progDev","free","health","lang"].reduce((a,k)=>a+gap(k),0)
-    + Math.max(gap("other20"), subMin, gap("peaceGroup"));
-  const remain = Math.max(pos(124-total), needMore);
-  return {R, ownName, otherName, law, profCounted, commCounted, total, short, remain};
-}
-
-const LABEL = {
-  kiban:"学部共通基盤科目（必修）", peace:"平和共生・沖縄理解基盤科目", gakka:"学科基盤科目（必修）",
-  own:"学科発展科目", other:"学科発展科目", progKiban:"プログラム基盤科目（必修）", progDev:"プログラム発展科目",
-  free:"専門自由科目", health:"健康運動系科目", other20:"その他の領域", jinbun:"人文系科目", shakai:"社会系科目",
-  shizen:"自然系科目", joho:"情報関係科目", peaceGroup:"平和共生・沖縄理解科目群", lang:"外国語"
-};
-
-function stateHtml(r, freeRow){
-  if(r.need===0) return `<span class="pill free">要件なし</span>`;
-  const done = r.have >= r.need;
-  const pct = Math.min(100, r.have/r.need*100);
-  const pill = done ? `<span class="pill ok">達成</span>` : `<span class="pill bad">あと <span class="num">${r.need-r.have}</span> 単位</span>`;
-  return `${pill}<div class="bar"><i class="${done?"ok":""}" style="width:${pct}%"></i></div><span class="req num">${freeRow?r.have:Math.min(r.have,r.need)} / ${r.need}${r.min?" 以上":""}</span>`;
-}
-
-function row({name, hint, input, r, calc, list, freeRow}){
-  const moves = (r && r.moves && r.moves.length) ? `<div class="moves">${r.moves.map(m=>`<div class="move">${m}</div>`).join("")}</div>` : "";
-  const field = calc
-    ? `<div class="calcval num">${calc}</div>`
-    : `<input id="in-${input}" type="number" inputmode="numeric" min="0" step="1" value="${input in RAW ? RAW[input] : state.v[input]}" aria-label="${name}の修得単位数">`;
-  const det = list ? `<details><summary>対象の科目</summary><p>${list}</p></details>` : "";
-  return `<div class="row${calc?" calc":""}"><div class="name">${name}${hint?`<small>${hint}</small>`:""}</div>${field}<div class="state">${stateHtml(r, freeRow)}</div>${moves}${det}</div>`;
-}
-
-function render(){
-  const c = compute(), R = c.R, law = c.law;
-  document.getElementById("p-law").setAttribute("aria-pressed", law);
-  document.getElementById("p-pol").setAttribute("aria-pressed", !law);
-  document.getElementById("exampleNote").hidden = !state.example;
-  const lawIn = law ? "lawDev" : "polDev", othIn = law ? "polDev" : "lawDev";
-  const lawList = LAW_DEV.replace("・基礎社会保障法","");
-
-  document.getElementById("prof").innerHTML =
-    `<p class="group">学部共通専門科目</p>` +
-    row({name:LABEL.kiban, hint:"基礎演習Ⅰ・Ⅱ・Ⅲ", input:"kiban", r:R.kiban}) +
-    row({name:LABEL.peace, hint:"成績表の「平和共生沖縄(選択)」", input:"peace", r:R.peace, list:PEACE_BASE}) +
-    `<p class="group">学科共通専門科目</p>` +
-    row({name:LABEL.gakka, hint:"法学概論・政治・国際関係学概論", input:"gakka", r:R.gakka}) +
-    row({name:`${LABEL.own}（${c.ownName}）`, hint:`成績表の「学科発展・${law?"法学":"政国"}(選択)」`, input:lawIn, r:R.own, list: law ? lawList+"<br>基礎社会保障法は、法学プログラムではプログラム発展科目として数えます。" : POL_DEV}) +
-    row({name:`${LABEL.other}（${c.otherName}）`, hint:`成績表の「学科発展・${law?"政国":"法学"}(選択)」`, input:othIn, r:R.other, list: law ? POL_DEV : LAW_DEV}) +
-    `<p class="group">プログラム専門科目</p>` +
-    row({name:LABEL.progKiban, hint: law?"法学演習Ⅰ〜Ⅳ":"政治・国際関係学演習Ⅰ〜Ⅳ・卒業研究", input:"progKiban", r:R.progKiban}) +
-    row({name:LABEL.progDev, hint:`成績表の「プロ発展・${law?"法学":"政国"}(選択)」`, input:"progDev", r:R.progDev}) +
-    row({name:LABEL.free, hint:"成績表の「自由科目」（他学科・他学部の専門科目）。振替の単位は自動で足します", input:"free", r:R.free, freeRow:true});
-
-  const otherHint = law ? "成績表の「人社等計」（外国語と健康運動系を除く共通教育の合計）" : "健康運動系を除く共通教育の合計（外国語を含む）";
-  document.getElementById("comm").innerHTML =
-    row({name:LABEL.health, input:"health", r:R.health}) +
-    `<p class="group">教養領域・総合領域・基幹領域（情報関係）</p>` +
-    row({name:LABEL.jinbun, hint:"成績表の「人文計」", input:"jinbun", r:R.jinbun}) +
-    row({name:LABEL.shakai, hint:"成績表の「社会計」", input:"shakai", r:R.shakai}) +
-    row({name:LABEL.shizen, input:"shizen", r:R.shizen}) +
-    row({name:"総合科目", hint:"「総合」と「総合(平和共生)」の合計", input:"sogo", r:R.sogo}) +
-    row({name:"琉大特色・地域創生科目", hint:"「琉特・地創」と「琉特・地創(平和共生)」の合計", input:"ryudai", r:R.ryudai}) +
-    row({name:"キャリア関係科目", input:"career", r:R.career}) +
-    row({name:LABEL.joho, hint:"情報科学演習", input:"joho", r:R.joho}) +
-    row({name:LABEL.other20, hint:otherHint, calc:`${R.other20.total}`, r:R.other20}) +
-    row({name:`うち${LABEL.peaceGroup}`, hint:"成績表の「平和共生沖縄理解計」", input:"peaceGroup", r:R.peaceGroup, list:PEACE_GROUP}) +
-    `<p class="group">基幹領域（外国語）</p>` +
-    row({name:LABEL.lang, hint:"成績表の「外国語計」（第1外国語8単位・第2外国語4単位）", input:"lang", r:R.lang});
-
-  document.getElementById("profSum").textContent = `${c.profCounted} / 90`;
-  document.getElementById("commSum").textContent = `${c.commCounted} / 34`;
-
-  const sm = document.getElementById("summary");
-  const done = c.short.length === 0;
-  sm.className = "summary" + (done ? " done" : "");
-  const names = c.short.map(k => {
-    let n = LABEL[k];
-    if(k==="own") n += `（${c.ownName}）`; if(k==="other") n += `（${c.otherName}）`;
-    return `<li>${n}：あと<span class="num">${R[k].need-R[k].have}</span>単位</li>`;
-  }).join("");
-  sm.innerHTML = done
-    ? `<div class="big num">${c.total}<small>/ 124単位</small></div><div class="msg">卒業要件をすべて満たしています。</div>`
-    : `<div class="big num">${c.remain}<small>単位</small></div><div><div class="msg">卒業まで、あと${c.remain}単位です。足りない区分は${c.short.length}つです。</div><ul>${names}</ul></div>`;
-  sm.innerHTML += `<div class="totalbar" aria-hidden="true"><i style="width:${Math.min(100,c.total/124*100)}%"></i></div>`;
-
-  document.querySelectorAll("input[id^='in-']").forEach(el => {
-    el.addEventListener("input", () => {
-      const k = el.id.slice(3);
-      state.v[k] = Math.max(0, parseInt(el.value, 10) || 0);
-      RAW[k] = el.value;
-      state.example = false; save();
-      render();
-      const again = document.getElementById(el.id);
-      if(again) again.focus();
-    });
-  });
-}
-
-/* ---------- 成績表PDFの読み込み ---------- */
-const MAP_COMMON = {health:["健康運動"], jinbun:["人文計"], shakai:["社会計"], shizen:["自然"],
-  sogo:["総合","総合(平和共生)"], ryudai:["琉特・地創","琉特・地創(平和共生)"], career:["キャリア関係"],
-  joho:["情報関係"], peaceGroup:["(平和共生沖縄理解計)"], lang:["（外国語計）"]};
-const MAP_PROF = {kiban:["学部共通基盤(必修)"], peace:["平和共生沖縄(選択)"], gakka:["学科基盤(必修)"],
-  lawDev:["学科発展・法学(選択)"], polDev:["学科発展・政国(選択)"], free:["自由科目"]};
-
-function parseRecord(items){
-  const text = items.map(i=>i.s).join("\n");
-  const program = text.includes("政治・国際関係学プログラム") ? "pol" : (text.includes("法学プログラム") ? "law" : null);
-  const earnedCols = items.filter(i=>i.s==="修得単位").map(i=>i.x).sort((a,b)=>a-b);
-  if(!earnedCols.length) return null;
-  const nums = items.filter(i=>/^\d+$/.test(i.s));
-  const value = label => {
-    const L = items.find(i=>i.s===label);
-    if(!L) return null;
-    const col = earnedCols.find(x => x > L.x);
-    if(col === undefined) return null;
-    const hit = nums.find(n => Math.abs(n.y-L.y) <= 4 && n.x >= col-6 && n.x <= col+45);
-    return hit ? parseInt(hit.s,10) : 0;
-  };
-  const tag = program === "pol" ? "政国" : "法学";
-  const map = {...MAP_COMMON, ...MAP_PROF, progKiban:[`プロ基盤・${tag}(必修)`], progDev:[`プロ発展・${tag}(選択)`]};
-  const v = {}; let found = 0;
-  for(const [k, labels] of Object.entries(map)){
-    let sum = 0, any = false;
-    for(const lb of labels){ const x = value(lb); if(x !== null){ sum += x; any = true; } }
-    v[k] = sum; if(any) found++;
-  }
-  if(found < 12) return null;
-  return {program, v};
-}
-
-let pdfReady = null;
-function loadPdfJs(){
-  if(pdfReady) return pdfReady;
-  pdfReady = new Promise((res, rej) => {
-    const s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-    s.onload = () => { pdfjsLib.GlobalWorkerOptions.workerSrc = s.src; res(); };
-    s.onerror = () => { pdfReady = null; rej(new Error("load")); };
-    document.head.appendChild(s);
-  });
-  return pdfReady;
-}
-
-function setStatus(msg, ok){
-  const el = document.getElementById("status");
-  el.hidden = false; el.textContent = msg; el.className = "status " + (ok ? "ok" : "bad");
-}
-
-async function readPdf(file){
-  if(!file) return;
-  setStatus("読み込んでいます…", true);
-  try{
-    await loadPdfJs();
-    const doc = await pdfjsLib.getDocument({data: new Uint8Array(await file.arrayBuffer())}).promise;
-    let result = null;
-    for(let p = doc.numPages; p >= 1 && !result; p--){
-      const page = await doc.getPage(p);
-      const tc = await page.getTextContent();
-      const items = tc.items.filter(i => i.str && i.str.trim()).map(i => ({s:i.str.trim(), x:i.transform[4], y:i.transform[5]}));
-      result = parseRecord(items);
-    }
-    if(!result){ setStatus("成績表の「単位修得状況」が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
-    state.v = {...state.v, ...result.v};
-    if(result.program) state.program = result.program;
-    state.example = false;
-    KEYS.forEach(k => delete RAW[k]);
-    save(); render();
-    setStatus("成績表を読み込みました。振替を計算した結果を表示しています。", true);
-  }catch(e){
-    setStatus("PDFを読み込めませんでした。ファイルを選び直すか、数字を入力してください。", false);
-  }
-}
-
-const fileEl = document.getElementById("file"), drop = document.getElementById("drop");
-fileEl.addEventListener("change", () => { readPdf(fileEl.files[0]); fileEl.value = ""; });
-drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
-drop.addEventListener("dragleave", () => drop.classList.remove("over"));
-drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); readPdf(e.dataTransfer.files[0]); });
-
-document.getElementById("p-law").onclick = () => { state.program="law"; save(); render(); };
-document.getElementById("p-pol").onclick = () => { state.program="pol"; save(); render(); };
-document.getElementById("clear").onclick = () => { KEYS.forEach(k => { delete RAW[k]; state.v[k]=0; }); state.example=false; save(); render(); };
-render();
-</script>
+<script src="app.js"></script>
 </body>
 </html>
