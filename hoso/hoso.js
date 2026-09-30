@@ -175,7 +175,6 @@ function render() {
   const table = `<section class="goal"><div class="sechead"><h2>法曹コースの科目の成績</h2></div>`
     + `<p class="goalnote">必修科目のうち、まだ修得していない科目と、D・Fの科目（再履修できる科目）は、見込みの評価を選ぶと、上の判定に反映されます。</p>`
     + `<table class="courses">${head("必修科目", "評価", "見込み")}<tbody>${c.req.map(tr).join("")}</tbody></table>`
-    + `<p class="goalnote">選択必修科目は、必修科目のGPAに含めません。</p>`
     // 表を見ているあいだ、画面の下にGPAを出す（上のGPAまで遠いため）
     + `<div class="floatgpa"><span>${c.preds.length ? "見込みを入れたGPA" : "いまのGPA"}</span>`
     + `<span>必修科目 <b class="num">${c.reqG.u ? fmt(c.reqG.p / c.reqG.u) : "－"}</b></span><span>全修得単位 <b class="num">${c.all.u ? fmt(c.all.p / c.all.u) : "－"}</b></span></div></section>`;
