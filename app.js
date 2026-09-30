@@ -40,7 +40,7 @@ function compute() {
     const t = S[s.d.over];
     t.eff += extra;
     t.recv.push({ from: s.d.name, n: extra });
-    s.moves.push(`${s.need}単位を超えた${extra}単位を${t.d.name}に回しました`);
+    s.moves.push(`${s.need}単位を超えた${extra}単位を${t.d.name}に振り替えました`);
   }
   // 共通教育の要件を超えた分
   const ce = r.commonExcess, ceRows = ce ? ce.program[p] : [];
@@ -53,7 +53,7 @@ function compute() {
       t.recv.push({ from: "共通教育", n: moved });
       const last = ceRows[ceRows.length - 1];
       S[ceRows.includes("pool") ? "pool" : last].moves.push(
-        `共通教育の要件を超えた${moved}単位を${t.d.name}に回しました${excess > ce.cap ? `（上限${ce.cap}単位。残り${excess - ce.cap}単位は卒業の単位に数えません）` : ""}`);
+        `共通教育の要件を超えた${moved}単位を${t.d.name}に振り替えました${excess > ce.cap ? `（上限${ce.cap}単位。残り${excess - ce.cap}単位は卒業の単位に数えません）` : ""}`);
     }
   }
   for (const k of keys) {
@@ -134,6 +134,7 @@ function render() {
     : `<div class="big num"><small>あと</small>${c.remain}<small>単位</small></div><div><div class="msg">卒業まで、あと${c.remain}単位です。足りない科目区分は${c.short.length}つです。</div><ul>${names}</ul></div>`)
     + `<div class="totalbar" aria-hidden="true"><i style="width:${Math.min(100, c.total / r.total * 100)}%"></i></div>`;
   $("source").textContent = `${r.faculty} ${r.dept}（${r.year}年度入学）の卒業要件は、${r.source}で計算しています。`;
+  $("transfer").textContent = `選択科目の要件を超えた単位と、共通教育の要件を超えた単位（${r.commonExcess.cap}単位まで）は、専門自由科目に振り替えます。` + (r.transferNote || "");
 }
 
 /* ---------- 成績表PDFの読み込み ---------- */

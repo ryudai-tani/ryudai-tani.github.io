@@ -109,6 +109,7 @@ function kokuhouRule(year, L, opt) {
     id: "jinsha-kokusaihosei-" + year, year,
     source: `${year}年度入学者用の学生便覧（人文社会学部規程 別表・国際法政学科）`,
     pdfSupported: oldK,
+    transferNote: "学科発展科目で、所属プログラムの系が16単位を超えた分は、プログラム発展科目に振り替えます。",
     sections: [
       { name: "専門教育科目", need: 90, top: true, groups: PROF_GROUPS },
       { name: "共通教育科目", need: 34, groups: oldK ? KYOTSU_OLD_GROUPS : KYOTSU_NEW_GROUPS }
@@ -212,6 +213,7 @@ function ningenRule(year, L) {
   return {
     id: "jinsha-ningen-" + year, year, faculty: "人文社会学部", dept: "人間社会学科",
     match: { faculty: "人文社会", dept: "人間社会" }, programs, total: 124, pdfSupported: false,
+    transferNote: "学科基盤科目・学科発展科目・プログラムコア発展科目の要件を超えた分は、プログラム発展科目に振り替えます。",
     source: `${year}年度入学者用の学生便覧（人文社会学部規程 別表・人間社会学科）`,
     sections: [
       { name: "専門教育科目", need: 88, top: true, groups: [
