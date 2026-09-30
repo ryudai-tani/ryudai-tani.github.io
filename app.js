@@ -75,6 +75,8 @@ function compute() {
   const poolGap = S.pool ? gap("pool") : 0;
   const needMore = topRows.reduce((a, k) => a + gap(k), 0) + pos(Math.max(partGap, overlayGap) - poolGap);
   const short = order.filter(k => S[k].need > 0 && S[k].eff < S[k].need);
+  // 科目区分ごとに足りない単位（見出しに出す）
+  for (const t of secTotals) t.gap = t.rows.reduce((a, k) => a + gap(k), 0) + (t.sec.top ? 0 : pos(Math.max(partGap, overlayGap) - poolGap));
   return { S, secTotals, total, short, remain: Math.max(pos(r.total - total), needMore) };
 }
 
@@ -126,7 +128,7 @@ function render() {
   if (!state.open) return;
   renderSelectors();
   $("sections").innerHTML = c.secTotals.map(t =>
-    `<section><div class="sechead"><h2>${esc(t.sec.name)}</h2><span class="num">${t.sum} / ${t.sec.need}</span></div>` +
+    `<section><div class="sechead"><h2>${esc(t.sec.name)}</h2>${t.gap ? `<span class="pill bad">あと <span class="num">${t.gap}</span> 単位</span>` : `<span class="pill ok">達成</span>`}</div>` +
     t.sec.groups.map(g => (g.name ? `<p class="group">${esc(g.name)}</p>` : "") + g.rows.map(k => rowHtml(k, S[k])).join("")).join("") +
     `</section>`).join("");
   const sm = $("summary"), done = c.short.length === 0;
