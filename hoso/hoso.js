@@ -171,10 +171,12 @@ function render() {
   const sel = r => r.canPred ? `<select data-pred="${esc(r.name)}" aria-label="${esc(r.name)}の見込み">`
     + ["", "A", "B", "C", "D", "F"].map(g => `<option value="${g}"${(pred[r.name] || "") === g ? " selected" : ""}>${g || "－"}</option>`).join("") + `</select>` : "";
   const tr = r => `<tr><td>${esc(r.name)}</td><td class="num">${r.u}</td><td${r.rows.length ? "" : ' class="miss"'}>${r.rows.length ? esc(r.g) : "未修得"}</td><td>${sel(r)}</td></tr>`;
-  const head = name => `<thead><tr><th>${name}</th><th>単位</th><th>評価</th><th>見込み</th></tr></thead>`;
+  // 選択必修科目は、評価を出さず、修得したかだけ
+  const trEle = r => { const got = r.rows.some(x => PASS.includes(x.g)); return `<tr><td>${esc(r.name)}</td><td class="num">${r.u}</td><td${got ? "" : ' class="miss"'}>${got ? "修得済み" : "未修得"}</td><td>${sel(r)}</td></tr>`; };
+  const head = (name, col) => `<thead><tr><th>${name}</th><th>単位</th><th>${col}</th><th>見込み</th></tr></thead>`;
   const table = `<section class="goal"><div class="sechead"><h2>法曹コースの科目の成績</h2></div>`
     + `<p class="goalnote">まだ修得していない科目と、D・Fの科目（再履修できる科目）は、見込みの評価を選ぶと、上の判定に反映されます。</p>`
-    + `<table class="courses">${head("必修科目")}<tbody>${c.req.map(tr).join("")}</tbody>${head("選択必修科目")}<tbody>${c.ele.map(tr).join("")}</tbody></table>`
+    + `<table class="courses">${head("必修科目", "評価")}<tbody>${c.req.map(tr).join("")}</tbody>${head("選択必修科目", "修得")}<tbody>${c.ele.map(trEle).join("")}</tbody></table>`
     + `<p class="goalnote">選択必修科目は、必修科目のGPAに含めません。</p></section>`;
   const predNote = c.preds.length ? `<p class="plan-note">見込みの評価を入れて計算しています。 <button type="button" class="linkbtn" id="clearPred">見込みを消す</button></p>` : "";
 
@@ -246,7 +248,11 @@ $("result").addEventListener("change", e => {
   if (n == null) return;
   state.pred = state.pred || {};
   if (e.target.value) state.pred[n] = e.target.value; else delete state.pred[n];
+  // 上の判定の長さが変わっても、選んだ欄が画面の同じ位置にとどまるようにする
+  const before = e.target.getBoundingClientRect().top;
   save(); render();
+  const again = [...document.querySelectorAll("select[data-pred]")].find(x => x.dataset.pred === n);
+  if (again) window.scrollBy(0, again.getBoundingClientRect().top - before);
 });
 $("result").addEventListener("click", e => { if (e.target.id === "clearPred") { state.pred = {}; save(); render(); } });
 $("clearAll").addEventListener("click", () => { window.TANI_KEEP.clear(); location.reload(); });
