@@ -182,6 +182,16 @@ function render() {
 
   $("result").innerHTML = predNote + `<div class="gpas">${gpaCard("全修得単位のGPA", c.all, "all")}${gpaCard("法曹コース必修科目のGPA", c.reqG, "req")}</div>`
     + goals + table;
+  watchGpas();
+}
+// パソコンの広い画面：上のGPAが画面から見えなくなったときだけ、右の余白にGPAを出す
+let gpaObserver = null;
+function watchGpas() {
+  const el = document.querySelector(".gpas");
+  if (!el || !window.IntersectionObserver) { document.body.classList.add("gpas-off"); return; }
+  if (gpaObserver) gpaObserver.disconnect();
+  gpaObserver = new IntersectionObserver(es => document.body.classList.toggle("gpas-off", !es[0].isIntersecting));
+  gpaObserver.observe(el);
 }
 
 /* ---------- 成績表PDFの読み込み ---------- */
