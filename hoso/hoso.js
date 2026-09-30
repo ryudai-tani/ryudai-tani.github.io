@@ -62,26 +62,26 @@ function compute() {
   const reqNewUnits = reqLeft.filter(r => !r.rows.some(c => c.g in GP)).reduce((a, r) => a + r.u, 0);
   const eleDone = ele.filter(r => r.done).length;
   const eleLeft = Math.max(0, ELECTIVE_NEED - eleDone);
-  const minPlan = reqLeftUnits + eleLeft * 2;
-  const defPlan = Math.max(TOTAL - earned, minPlan);
-  const plan = state.plan != null ? state.plan : defPlan;
-  return { cs, reqCs, reqNewUnits, req, ele, all, reqG, earned, reqLeft, reqLeftUnits, eleDone, eleLeft, plan, defPlan };
+  // 全修得単位のGPAの「残り」：まだ評価のない必修科目と、足りない選択必修
+  const rest = reqNewUnits + eleLeft * 2;
+  return { cs, reqCs, reqNewUnits, req, ele, all, reqG, earned, reqLeft, reqLeftUnits, eleDone, eleLeft, rest };
 }
 
 // 残りR単位で、GPAを基準に届かせるには
-function advice(g, R, target, canAdd) {
+function advice(g, R, target, canAdd, what) { return { what, ...advice0(g, R, target, canAdd, what) }; }
+function advice0(g, R, target, canAdd, what) {
   const cur = g.u ? g.p / g.u : 0;
   const N = target * (g.u + R) - g.p; // 残りで必要なGPの合計（単位×GP）
   if (R === 0) {
     if (g.u && cur >= target) return { k: "ok", t: "基準に届いています。" };
-    return { k: "bad", t: "基準に届いていません。" + (canAdd ? addMore(g, target) : "") };
+    return { k: "bad", t: "基準に届いていません。" + (canAdd ? addMore(g, R, target) : "") };
   }
   // 必修科目はFでは修得できないので、「成績にかかわらず」とは書かない
-  if (N <= R + 1e-9) return { k: N <= 1e-9 ? "ok" : "move", t: `残りの${R}単位を修得すれば（D以上）、届きます。` };
-  if (N > 4 * R + 1e-9) return { k: "bad", t: `残りの${R}単位をすべてAにしても${fmt((g.p + 4 * R) / (g.u + R))}で、届きません。` + (canAdd ? addMore(g, target) : "") };
+  if (N <= R + 1e-9) return { k: N <= 1e-9 ? "ok" : "move", t: `残りの${what}${R}単位を修得すれば（D以上）、届きます。` };
+  if (N > 4 * R + 1e-9) return { k: "bad", t: `残りの${what}${R}単位をすべてAにしても${fmt((g.p + 4 * R) / (g.u + R))}で、届きません。` + (canAdd ? addMore(g, R, target) : "") };
   const b = Math.ceil(N / R - 1e-9) - 1; // 1〜3
   const k = Math.ceil(N - b * R - 1e-9);
-  return { k: "move", t: k >= R ? `残りの${R}単位を、すべて${LABEL[b + 1]}以上にすれば届きます。` : `残りの${R}単位のうち、${LABEL[b + 1]}を${k}単位以上、ほかを${LABEL[b]}以上にすれば届きます。` };
+  return { k: "move", what, t: k >= R ? `残りの${what}${R}単位を、すべて${LABEL[b + 1]}以上にすれば届きます。` : `残りの${what}${R}単位のうち、${LABEL[b + 1]}を${k}単位以上、ほかを${LABEL[b]}以上にすれば届きます。` };
 }
 // 再履修できる科目（D・F）と、Aを取ったときに上がるGPA
 function retake(how, list, g, R, target) {
@@ -105,14 +105,14 @@ function retake(how, list, g, R, target) {
       parts.push(`${esc(x.c.n)}（${x.c.g}）を再履修してAを`);
       E -= max;
     }
-    return { k: "move", t: how.t, more: [`${R ? `残りの${R}単位をすべてAにし、` : ""}${parts.join("、")}取れば届きます。`] };
+    return { k: "move", t: how.t, more: [`${R ? `残りの${how.what}${R}単位をすべてAにし、` : ""}${parts.join("、")}取れば届きます。`] };
   }
   return { k: how.k, t: how.t, more: lines };
 }
-function addMore(g, target) {
+function addMore(g, R, target) {
   if (target >= 4) return "";
-  const r = Math.ceil((target * g.u - g.p) / (4 - target) - 1e-9);
-  return `これから修得する単位を${r}単位にして、すべてAにすれば届きます。`;
+  const r = Math.ceil((target * (g.u + R) - g.p - 4 * R) / (4 - target) - 1e-9);
+  return `ほかの科目もあと${r}単位、Aで修得すれば届きます。`;
 }
 
 /* ---------- 表示 ---------- */
@@ -125,8 +125,6 @@ function render() {
   const c = compute();
   const gpaCard = (label, g, key) => `<div class="gpa"><span class="label">${label}</span><span class="big num">${g.u ? fmt(g.p / g.u) : "－"}</span>`
     + `<span class="req">早期卒業 ${fmt(GOALS[0][key])}以上・修了 ${fmt(GOALS[1][key])}以上</span></div>`;
-  let opts = "";
-  for (let i = 0; i <= Math.max(60, c.plan); i++) opts += `<option value="${i}"${i === c.plan ? " selected" : ""}>${i}</option>`;
 
   const row = (name, val, how) => `<div class="grow"><span class="name">${name}</span><span class="val num">${val}</span><p class="how ${how.k}">${how.t}</p>`
     + (how.more ? how.more.map(t => `<p class="how move">${t}</p>`).join("") : "") + `</div>`;
@@ -138,9 +136,9 @@ function render() {
     const eleRest = c.ele.filter(r => !r.done).map(r => r.name);
     items.push(row("選択必修", `${Math.min(c.eleDone, ELECTIVE_NEED) * 2} / ${ELECTIVE_NEED * 2}単位`,
       c.eleLeft ? { k: "bad", t: `あと${c.eleLeft * 2}単位です（${eleRest.join("・")}${eleRest.length > c.eleLeft ? `から${c.eleLeft}科目` : ""}）。` } : { k: "ok", t: "修得しています。" }));
-    const a1 = retake(advice(c.reqG, c.reqNewUnits, G.req, false), c.reqCs, c.reqG, c.reqNewUnits, G.req);
+    const a1 = retake(advice(c.reqG, c.reqNewUnits, G.req, false, "必修科目"), c.reqCs, c.reqG, c.reqNewUnits, G.req);
     items.push(row("必修科目のGPA", `${c.reqG.u ? fmt(c.reqG.p / c.reqG.u) : "－"} / ${fmt(G.req)}`, a1));
-    const a2 = retake(advice(c.all, c.plan, G.all, true), c.cs, c.all, c.plan, G.all);
+    const a2 = retake(advice(c.all, c.rest, G.all, true, c.eleLeft ? "必修科目・選択必修" : "必修科目"), c.cs, c.all, c.rest, G.all);
     items.push(row("全修得単位のGPA", `${c.all.u ? fmt(c.all.p / c.all.u) : "－"} / ${fmt(G.all)}`, a2));
     const gpaBad = a1.k === "bad" || a2.k === "bad";
     const allOk = !c.reqLeft.length && !c.eleLeft && a1.k === "ok" && a2.k === "ok";
@@ -154,9 +152,7 @@ function render() {
     + `<thead><tr><th>選択必修</th><th>単位</th><th>評価</th></tr></thead><tbody>${c.ele.map(tr).join("")}</tbody></table></details>`;
 
   $("result").innerHTML = `<div class="gpas">${gpaCard("全修得単位のGPA", c.all, "all")}${gpaCard("法曹コース必修科目のGPA", c.reqG, "req")}</div>`
-    + `<label class="planbox">卒業までに、これから修得する単位<select id="plan">${opts}</select></label>`
     + goals + table;
-  $("plan").addEventListener("change", e => { state.plan = parseInt(e.target.value, 10) || 0; save(); render(); });
 }
 
 /* ---------- 成績表PDFの読み込み ---------- */
