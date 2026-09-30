@@ -274,9 +274,10 @@ const onEdit = e => {
   } else return;
   save();
   const id = el.id; render();
-  const again = $(id); if (again) again.focus();
+  // 入力欄だけ、打ち続けられるようにフォーカスを戻す（プルダウンに戻すとスマホでもう一度開いてしまう）
+  const again = $(id); if (again && el.tagName === "INPUT") again.focus();
 };
-$("sections").addEventListener("input", onEdit);
+$("sections").addEventListener("input", e => { if (e.target.tagName === "INPUT") onEdit(e); });
 $("sections").addEventListener("change", e => { if (e.target.id && e.target.id.startsWith("pl-")) onEdit(e); });
 $("sel-prog").addEventListener("change", e => { state.program = e.target.value; save(); render(); });
 $("sel-year").addEventListener("change", e => pickRule(e.target.value, rule().faculty, rule().dept));
