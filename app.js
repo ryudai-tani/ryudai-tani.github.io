@@ -6,7 +6,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 
 let saved = {};
 try { saved = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) {}
-let state = { ruleId: saved.ruleId || RULES[0].id, program: saved.program || null, data: saved.data || {}, open: !!saved.open, fromPdf: !!saved.fromPdf, plan: !!saved.plan };
+let state = { ruleId: saved.ruleId || RULES[0].id, program: saved.program || null, data: saved.data || {}, open: !!saved.open, fromPdf: !!saved.fromPdf, plan: !!saved.plan, loadedAt: saved.loadedAt || null };
 const RAW = {};
 function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
@@ -144,6 +144,9 @@ function render() {
   // 成績表を読み込んだ後は、使い方をしまって結果を先に見せる
   $("howto").hidden = state.fromPdf;
   $("loadedBar").hidden = !state.fromPdf;
+  // いつ読み込んだ成績表かを出し、新しい成績が出たときに読み込み直せるようにする
+  const d = state.loadedAt ? new Date(state.loadedAt) : null;
+  $("loadedMsg").textContent = d ? `${d.getMonth() + 1}月${d.getDate()}日に読み込んだ成績表です。` : "成績表を読み込みました。";
   if (!state.open) return;
   renderSelectors();
   $("sections").innerHTML = c.secTotals.map(t =>
@@ -248,7 +251,7 @@ async function readPdf(file) {
     }
     if (!result || !result.rule) { setStatus("成績表の「単位修得状況」が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
     state.ruleId = result.rule.id; state.program = result.program;
-    state.data[result.rule.id] = { v: { ...result.v } }; state.open = true; state.fromPdf = true; state.plan = false;
+    state.data[result.rule.id] = { v: { ...result.v } }; state.open = true; state.fromPdf = true; state.plan = false; state.loadedAt = Date.now();
     Object.keys(RAW).forEach(k => delete RAW[k]);
     save(); render();
     $("status").hidden = true;
