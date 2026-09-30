@@ -1,5 +1,7 @@
 const STORE = "hoso-check-v1";
-const $ = id => document.getElementById(id);
+// 画面の部品が見つからなくても止まらないようにする（古いページの枠がブラウザに残っているとき）
+const NO_EL = { hidden: false, textContent: "", innerHTML: "", value: "", className: "", classList: { add() {}, remove() {} }, addEventListener() {}, focus() {}, scrollIntoView() {} };
+const $ = id => document.getElementById(id) || NO_EL;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 // 「Ⅰ」「I」「Ｉ」や全角・半角の違い、空白を無視して科目名を比べる
 const norm = s => String(s).normalize("NFKC").replace(/\s/g, "");
