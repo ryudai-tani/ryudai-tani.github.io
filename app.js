@@ -1,7 +1,9 @@
 const RULES = window.TANI_RULES;
 const STORE = "tani-check-v4";
 const pos = x => Math.max(0, x);
-const $ = id => document.getElementById(id);
+// 画面の部品が見つからなくても止まらないようにする（古いページの枠がブラウザに残っているとき）
+const NO_EL = { hidden: false, textContent: "", innerHTML: "", value: "", className: "", classList: { add() {}, remove() {} }, addEventListener() {}, focus() {}, scrollIntoView() {} };
+const $ = id => document.getElementById(id) || NO_EL;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 let saved = {};
@@ -146,7 +148,7 @@ function render() {
   $("loadedBar").hidden = !state.fromPdf;
   // いつ読み込んだ成績表かを出し、新しい成績が出たときに読み込み直せるようにする
   const d = state.loadedAt ? new Date(state.loadedAt) : null;
-  $("loadedMsg").textContent = d ? `${d.getMonth() + 1}月${d.getDate()}日に読み込んだ成績表です。` : "成績表を読み込みました。";
+  const lm = $("loadedMsg"); if (lm) lm.textContent = d ? `${d.getMonth() + 1}月${d.getDate()}日に読み込んだ成績表です。` : "成績表を読み込みました。";
   if (!state.open) return;
   renderSelectors();
   $("sections").innerHTML = c.secTotals.map(t =>
@@ -158,9 +160,9 @@ function render() {
   const names = c.short.map(k => `<li>${esc(S[k].d.name)}：あと<span class="num">${S[k].need - S[k].eff}</span>単位</li>`).join("");
   const rawTotal = c.secTotals.reduce((a, t) => a + t.raw, 0);
   const planSum = state.plan ? Object.values(st.plan || {}).reduce((a, x) => a + x, 0) : 0;
-  $("togglePlan").textContent = state.plan ? "予定の単位を消して、成績表だけの結果に戻す" : "これから修得する単位を入れて試す";
-  $("planNote").hidden = !planSum;
-  $("planNote").textContent = `予定の${planSum}単位を含めた結果です。`;
+  const tp = $("togglePlan"); if (tp) tp.textContent = state.plan ? "予定の単位を消して、成績表だけの結果に戻す" : "これから修得する単位を入れて試す";
+  const pn = $("planNote");
+  if (pn) { pn.hidden = !planSum; pn.textContent = `予定の${planSum}単位を含めた結果です。`; }
   const shownTotal = rawTotal + planSum;
   const why = !done && c.remain > r.total - shownTotal && c.short.length === 1
     ? `<p class="why">合計は${shownTotal}単位ですが、${esc(S[c.short[0]].d.name)}が${S[c.short[0]].need - S[c.short[0]].eff}単位足りないため、あと${c.remain}単位です。</p>`
@@ -286,7 +288,7 @@ $("sel-prog").addEventListener("change", e => { state.program = e.target.value; 
 $("sel-year").addEventListener("change", e => pickRule(e.target.value, rule().faculty, rule().dept));
 $("sel-fac").addEventListener("change", e => pickRule(rule().year, e.target.value, rule().dept));
 $("sel-dept").addEventListener("change", e => pickRule(rule().year, rule().faculty, e.target.value));
-$("togglePlan").addEventListener("click", () => {
+$("togglePlan") && $("togglePlan").addEventListener("click", () => {
   if (state.plan) { values().plan = {}; state.plan = false; } else state.plan = true;
   save(); render();
 });
@@ -294,7 +296,7 @@ $("openManual").addEventListener("click", () => { state.open = true; state.fromP
 const fileEl = $("file"), drop = $("drop");
 fileEl.addEventListener("change", () => { readPdf(fileEl.files[0]); fileEl.value = ""; });
 const fileEl2 = $("file2");
-fileEl2.addEventListener("change", () => { readPdf(fileEl2.files[0]); fileEl2.value = ""; });
+if (fileEl2) fileEl2.addEventListener("change", () => { readPdf(fileEl2.files[0]); fileEl2.value = ""; });
 // ページのどこにドラッグしても読み込む（枠の外に落としてもPDFが開かないように）
 let dragDepth = 0;
 document.addEventListener("dragenter", e => { e.preventDefault(); dragDepth++; drop.classList.add("over"); });
