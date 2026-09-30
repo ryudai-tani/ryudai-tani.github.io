@@ -46,11 +46,22 @@ function effective(cs) {
 
 /* ---------- 計算 ---------- */
 function compute() {
-  const cs = effective(state.courses || []);
+  // 見込みの評価（まだ修得していない科目・再履修する科目）を、いちばん新しい成績として足す
+  const unitOf = Object.fromEntries([...REQUIRED, ...ELECTIVE]);
+  // 見込みを選べるのは、まだ修得していない科目と、D・Fの科目（再履修できる）
+  const canPred = n => {
+    const real = (state.courses || []).filter(c => norm(c.n) === norm(n)).sort((a, b) => termKey(a.t) - termKey(b.t));
+    const last = real.length ? real[real.length - 1].g : null;
+    return !real.some(c => PASS.includes(c.g)) || last === "D" || last === "F";
+  };
+  const preds = Object.entries(state.pred || {}).filter(([n, g]) => g && unitOf[n] && canPred(n)).map(([n, g]) => ({ n, u: unitOf[n], g, t: "9999", pred: true }));
+  const withPred = [...(state.courses || []), ...preds];
+  const cs = effective(withPred);
   const status = list => list.map(([name, u]) => {
-    const rows = (state.courses || []).filter(c => norm(c.n) === norm(name)).sort((a, b) => termKey(a.t) - termKey(b.t));
+    const rows = withPred.filter(c => norm(c.n) === norm(name)).sort((a, b) => termKey(a.t) - termKey(b.t));
+    const real = rows.filter(c => !c.pred);
     const done = rows.find(c => PASS.includes(c.g));
-    return { name, u, rows, done: !!done, g: rows.map(c => c.g).join("→") };
+    return { name, u, rows: real, done: !!done, canPred: canPred(name), g: real.map(c => c.g).join("→") };
   });
   const req = status(REQUIRED), ele = status(ELECTIVE);
   const reqNames = new Set(REQUIRED.map(r => norm(r[0])));
@@ -66,7 +77,7 @@ function compute() {
   const eleLeft = Math.max(0, ELECTIVE_NEED - eleDone);
   // 全修得単位のGPAの「残り」：まだ評価のない必修科目と、足りない選択必修
   const rest = reqNewUnits + eleLeft * 2;
-  return { cs, reqCs, reqNewUnits, req, ele, all, reqG, earned, reqLeft, reqLeftUnits, eleDone, eleLeft, rest };
+  return { preds, cs, reqCs, reqNewUnits, req, ele, all, reqG, earned, reqLeft, reqLeftUnits, eleDone, eleLeft, rest };
 }
 
 // 残りR単位で、GPAを基準に届かせるには
@@ -156,11 +167,18 @@ function render() {
       + (G.note ? `<p class="goalnote">${G.note}</p>` : "") + `</section>`;
   }).join("");
 
-  const tr = r => `<tr><td>${esc(r.name)}</td><td class="n num">${r.u}</td><td${r.rows.length ? "" : ' class="miss"'}>${r.rows.length ? esc(r.g) : "未修得"}</td></tr>`;
-  const table = `<details><summary>法曹コースの科目の成績</summary><table class="courses"><thead><tr><th>必修科目</th><th>単位</th><th>評価</th></tr></thead><tbody>${c.req.map(tr).join("")}</tbody>`
-    + `<thead><tr><th>選択必修科目</th><th>単位</th><th>評価</th></tr></thead><tbody>${c.ele.map(tr).join("")}</tbody></table><p>選択必修科目は、必修科目のGPAに含めません。</p></details>`;
+  const pred = state.pred || {};
+  const sel = r => r.canPred ? `<select data-pred="${esc(r.name)}" aria-label="${esc(r.name)}の見込み">`
+    + ["", "A", "B", "C", "D", "F"].map(g => `<option value="${g}"${(pred[r.name] || "") === g ? " selected" : ""}>${g || "－"}</option>`).join("") + `</select>` : "";
+  const tr = r => `<tr><td>${esc(r.name)}</td><td class="num">${r.u}</td><td${r.rows.length ? "" : ' class="miss"'}>${r.rows.length ? esc(r.g) : "未修得"}</td><td>${sel(r)}</td></tr>`;
+  const head = name => `<thead><tr><th>${name}</th><th>単位</th><th>評価</th><th>見込み</th></tr></thead>`;
+  const table = `<section class="goal"><div class="sechead"><h2>法曹コースの科目の成績</h2></div>`
+    + `<p class="goalnote">まだ修得していない科目と、D・Fの科目（再履修できる科目）は、見込みの評価を選ぶと、上の判定に反映されます。</p>`
+    + `<table class="courses">${head("必修科目")}<tbody>${c.req.map(tr).join("")}</tbody>${head("選択必修科目")}<tbody>${c.ele.map(tr).join("")}</tbody></table>`
+    + `<p class="goalnote">選択必修科目は、必修科目のGPAに含めません。</p></section>`;
+  const predNote = c.preds.length ? `<p class="plan-note">見込みの評価を入れて計算しています。 <button type="button" class="linkbtn" id="clearPred">見込みを消す</button></p>` : "";
 
-  $("result").innerHTML = `<div class="gpas">${gpaCard("全修得単位のGPA", c.all, "all")}${gpaCard("法曹コース必修科目のGPA", c.reqG, "req")}</div>`
+  $("result").innerHTML = predNote + `<div class="gpas">${gpaCard("全修得単位のGPA", c.all, "all")}${gpaCard("法曹コース必修科目のGPA", c.reqG, "req")}</div>`
     + goals + table;
 }
 
@@ -222,6 +240,15 @@ async function readPdf(file) {
 }
 
 /* ---------- 操作 ---------- */
+// 見込みの評価（選んだ後にフォーカスを戻さない。スマホでもう一度開いてしまうため）
+$("result").addEventListener("change", e => {
+  const n = e.target.dataset && e.target.dataset.pred;
+  if (n == null) return;
+  state.pred = state.pred || {};
+  if (e.target.value) state.pred[n] = e.target.value; else delete state.pred[n];
+  save(); render();
+});
+$("result").addEventListener("click", e => { if (e.target.id === "clearPred") { state.pred = {}; save(); render(); } });
 $("clearAll").addEventListener("click", () => { window.TANI_KEEP.clear(); location.reload(); });
 const fileEl = $("file"), fileEl2 = $("file2"), drop = $("drop");
 fileEl.addEventListener("change", () => { readPdf(fileEl.files[0]); fileEl.value = ""; });
