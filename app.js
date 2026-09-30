@@ -312,6 +312,8 @@ $("togglePlan") && $("togglePlan").addEventListener("click", () => {
   if (state.plan) { values().plan = {}; state.plan = false; } else state.plan = true;
   save(); render();
 });
+// 読み込んだ数字を手で直す（入力欄に切り替える。数字はそのまま）
+$("editManual").addEventListener("click", () => { state.fromPdf = false; save(); render(); });
 $("openManual").addEventListener("click", () => { state.open = true; state.fromPdf = false; save(); render(); });
 const fileEl = $("file"), drop = $("drop");
 fileEl.addEventListener("change", () => { readPdf(fileEl.files[0]); fileEl.value = ""; });
