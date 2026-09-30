@@ -89,11 +89,11 @@ function stateHtml(s) {
   if (!s.need) return "";
   const done = s.eff >= s.need;
   const pct = Math.min(100, s.eff / s.need * 100);
-  // 数字は成績表と同じ（振替の前）。達成かどうかは振替の後で決める
+  // 数字は成績表と同じ（振替の前）。専門自由科目だけは振替を受け取った後の数字。達成かどうかは振替の後で決める
   const pill = !done ? `<span class="pill bad">あと <span class="num">${s.need - s.eff}</span> 単位</span>`
     : `<span class="pill ok">達成</span>`;
   const min = s.d.role === "part" || s.d.role === "overlay";
-  return `${pill}<div class="bar"><i class="${done ? "ok" : ""}" style="width:${pct}%"></i></div><span class="req num">${s.have} / ${s.need}${min || s.d.calc ? " 以上" : ""}</span>`;
+  return `${pill}<div class="bar"><i class="${done ? "ok" : ""}" style="width:${pct}%"></i></div><span class="req num">${s.d.sink ? s.eff : s.have} / ${s.need}${min || s.d.calc ? " 以上" : ""}</span>`;
 }
 function rowHtml(k, s) {
   const d = s.d, st = values();
