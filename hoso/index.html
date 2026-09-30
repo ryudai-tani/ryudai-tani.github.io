@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="琉球大学の成績表のPDFを読み込み、振替を計算して、卒業まであと何単位かを表示します。">
-<title>琉球大学卒業まであと何単位</title>
+<meta name="description" content="琉球大学の成績表のPDFを読み込み、法曹コースの修了と早期卒業に必要なGPAと単位を表示します。">
+<title>琉球大学 法曹コースの修了・早期卒業</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
@@ -122,21 +122,34 @@ details p{margin:4px 0}
 .pickers label{display:flex;flex-direction:column;gap:3px;font-size:.8rem;color:var(--muted)}
 .pickers select{font:inherit;font-size:.95rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:9em}
 select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gpas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gpa{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;display:flex;flex-direction:column;gap:4px}
+.gpa .label{font-size:.85rem;color:var(--muted)}
+.gpa .big{font-size:2.2rem;line-height:1.1;font-weight:700}
+.gpa .req{font-size:.82rem}
+.planbox{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:.9rem;color:var(--move);background:var(--move-soft);border-radius:8px;padding:8px 12px}
+.planbox select{font:inherit;font-size:.95rem;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.goal{display:flex;flex-direction:column;gap:8px}
+.grow{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:grid;grid-template-columns:1fr auto;gap:2px 14px;align-items:center}
+.grow .name{font-weight:700}
+.grow .val{text-align:right;font-size:1.05rem}
+.grow .how{grid-column:1/-1;font-size:.88rem;margin:0}
+.grow .how.ok{color:var(--ok)} .grow .how.bad{color:var(--bad)} .grow .how.move{color:var(--move)}
+.pill.move{background:var(--move-soft);color:var(--move)}
+.goalnote{margin:0;font-size:.85rem;color:var(--muted)}
+.courses{width:100%;border-collapse:collapse;font-size:.88rem;color:var(--ink)}
+.courses th,.courses td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+.courses td.n{text-align:right}
+.courses .miss{color:var(--bad)}
+@media (max-width:560px){ .gpas{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>琉球大学卒業まであと何単位</h1>
-    <p class="sub">琉球大学の成績表を読み込むと、卒業まであと何単位か表示します。</p>
+    <h1>法曹コースの修了・早期卒業</h1>
+    <p class="sub">琉球大学の成績表を読み込むと、法曹コースの修了と早期卒業に必要なGPAと単位を表示します。</p>
   </header>
-
-  <details class="updates">
-    <summary>更新履歴</summary>
-    <ul>
-      <li>2026年9月30日　法学プログラム（2023・2024年度入学）では、「基礎社会保障法」をプログラム発展科目として数えるようにしました。その他の不具合を直しました。</li>
-    </ul>
-  </details>
 
   <section class="howto" id="howto" aria-labelledby="howto-h">
     <h2 id="howto-h">使い方</h2>
@@ -144,7 +157,7 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <li>教務システムの成績表を開きます。</li>
       <li>成績表のPDFを、スマホかパソコンに保存します。</li>
       <li>下の「成績表のPDFを選ぶ」を押して、保存したPDFを選びます。</li>
-      <li>卒業まであと何単位か、どの科目区分が足りないかが表示されます。</li>
+      <li>GPAと、早期卒業・法曹コースの修了に足りないものが表示されます。</li>
     </ol>
     <details class="help">
       <summary>スマホでPDFを保存するには</summary>
@@ -156,46 +169,30 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <span>パソコンでは、PDFをこのページにドラッグしても読み込めます。</span>
       <input type="file" id="file" accept="application/pdf,.pdf">
     </label>
-    <p class="safe">読み込むのは、修得単位だけです。氏名・学籍番号・生年月日・GPA・科目ごとの評価は読み込みません。PDFはこのスマホやパソコンの中だけで読み、インターネットには送りません。成績がほかの人に見られることはありません。</p>
+    <p class="safe">読み込むのは、科目名・単位・評価と、修得単位の合計だけです。氏名・学籍番号・生年月日は読み込みません。PDFはこのスマホやパソコンの中だけで読み、インターネットには送りません。成績がほかの人に見られることはありません。</p>
   </section>
   <div class="loaded" id="loadedBar" hidden>
     <span class="loaded-msg" id="loadedMsg">成績表を読み込みました。</span>
     <label class="linkbtn">別の成績表を読み込む<input type="file" id="file2" accept="application/pdf,.pdf" hidden></label>
-    <button type="button" class="linkbtn" id="editManual">数字を手で直す</button>
   </div>
   <div class="status" id="status" hidden></div>
 
-  <p class="manual-link" id="manualLink"><button type="button" class="linkbtn" id="openManual">成績表のPDFを読み込めない場合は、数字を入力して計算できます</button></p>
-
-  <div id="result" hidden>
-    <div class="pickers">
-      <label>入学年度<select id="sel-year"></select></label>
-      <label>学部<select id="sel-fac"></select></label>
-      <label>学科<select id="sel-dept"></select></label>
-      <label>プログラム<select id="sel-prog"></select></label>
-    </div>
-    <p class="plan-note" id="planNote" hidden></p>
-    <div class="summary" id="summary"></div>
-    <p class="plan-toggle"><button type="button" class="linkbtn" id="togglePlan">これから修得する単位を入れて試す</button></p>
-    <div id="sections"></div>
-  </div>
+  <div id="result" hidden></div>
 
   <div class="note">
-    <p id="source"></p>
-    <p id="transfer"></p>
-    <p>特修法曹コースの修了と早期卒業に必要なGPAは、<a href="hoso/">法曹コースの修了・早期卒業</a>で確認できます。</p>
-    <p>対応している学科は、まだ一部です。最終的な判定は、所属学部の事務窓口で確認してください。</p>
+    <p>GPAは、成績表と同じく、A＝4・B＝3・C＝2・D＝1・F＝0で計算します。P（合格）とR（認定）の科目は含めません。</p>
+    <p>条件は、2026年2月12日の法曹コース説明会の資料で確認しています。最終的な判定は、人文社会学部学務係で確認してください。</p>
+    <p>卒業に必要な科目区分ごとの単位は、<a href="../">琉球大学卒業まであと何単位</a>で確認できます。</p>
   </div>
 </div>
 <script>
-// 更新がすぐ届くように、ページを開くたびに最新のプログラムを読み込む
 (function load(list) {
   if (!list.length) return;
   var el = document.createElement("script");
   el.src = list[0];
   el.onload = function () { load(list.slice(1)); };
   document.body.appendChild(el);
-})(["rules.js?t=" + Date.now(), "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", "app.js?t=" + Date.now()]);
+})(["https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", "hoso.js?t=" + Date.now()]);
 </script>
 </body>
 </html>
