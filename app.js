@@ -275,6 +275,7 @@ $("togglePlan") && $("togglePlan").addEventListener("click", () => {
   save(); render();
 });
 // 読み込んだ数字を手で直す（入力欄に切り替える。数字はそのまま）
+$("clearAll").addEventListener("click", () => { if (window.TANI_KEEP) window.TANI_KEEP.clear(); else localStorage.removeItem(STORE); location.reload(); });
 $("editManual").addEventListener("click", () => { state.fromPdf = false; save(); render(); });
 $("openManual").addEventListener("click", () => { state.open = true; state.fromPdf = false; save(); render(); });
 const fileEl = $("file"), drop = $("drop");

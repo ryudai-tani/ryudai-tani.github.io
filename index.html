@@ -156,11 +156,12 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <span>パソコンでは、PDFをこのページにドラッグしても読み込めます。</span>
       <input type="file" id="file" accept="application/pdf,.pdf">
     </label>
-    <p class="safe">読み込むのは、科目区分ごとの修得単位だけです（特修法曹コースの人は、法曹コースのページのために、科目ごとの評価も読み込みます）。氏名・学籍番号・生年月日は読み込みません。PDFはこのスマホやパソコンの中だけで読み込みます。サーバーに送ったり、保存したりしません。成績がほかの人に見られることはありません。</p>
+    <p class="safe">読み込むのは、科目区分ごとの修得単位だけです（特修法曹コースの人は、法曹コースのページのために、科目ごとの評価も読み込みます）。氏名・学籍番号・生年月日は読み込みません。PDFはこのスマホやパソコンの中だけで読み込みます。サーバーに送ったり、保存したりしません。読み込んだ結果は、このスマホやパソコンに24時間だけ残ります。成績がほかの人に見られることはありません。</p>
   </section>
   <div class="loaded" id="loadedBar" hidden>
     <label class="linkbtn">別の成績表を読み込む<input type="file" id="file2" accept="application/pdf,.pdf" hidden></label>
     <button type="button" class="linkbtn" id="editManual">数字を手で直す</button>
+    <button type="button" class="linkbtn" id="clearAll">成績表を消す</button>
   </div>
   <div class="status" id="status" hidden></div>
 

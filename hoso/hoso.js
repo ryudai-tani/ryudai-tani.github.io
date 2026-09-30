@@ -217,6 +217,7 @@ async function readPdf(file) {
 }
 
 /* ---------- 操作 ---------- */
+$("clearAll").addEventListener("click", () => { window.TANI_KEEP.clear(); location.reload(); });
 const fileEl = $("file"), fileEl2 = $("file2"), drop = $("drop");
 fileEl.addEventListener("change", () => { readPdf(fileEl.files[0]); fileEl.value = ""; });
 fileEl2.addEventListener("change", () => { readPdf(fileEl2.files[0]); fileEl2.value = ""; });

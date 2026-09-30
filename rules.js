@@ -411,3 +411,20 @@ window.parseCourses = (function () {
   return { courses, total, aff: affItem ? affItem.s : null };
 };
 })();
+
+/* ---------- 読み込んだ成績表の記録（2つのページで共通。読み込んでから24時間で消す） ---------- */
+window.TANI_KEEP = {
+  keys: ["tani-check-v4", "hoso-check-v1"],
+  ms: 24 * 60 * 60 * 1000,
+  // 読み込んでから24時間たった記録を、両方のページの分とも消す
+  sweep() {
+    try {
+      for (const k of this.keys) {
+        const o = JSON.parse(localStorage.getItem(k) || "null");
+        if (o && o.loadedAt && Date.now() - o.loadedAt > this.ms) localStorage.removeItem(k);
+      }
+    } catch (e) {}
+  },
+  clear() { try { for (const k of this.keys) localStorage.removeItem(k); } catch (e) {} },
+};
+window.TANI_KEEP.sweep();
