@@ -44,9 +44,11 @@ function compute() {
   }
   // 共通教育の要件を超えた分
   const ce = r.commonExcess, ceRows = ce ? ce.program[p] : [];
+  let commMoved = 0;
   if (ce) {
     const excess = ceRows.reduce((a, k) => a + pos(S[k].eff - S[k].need), 0);
     const moved = Math.min(excess, ce.cap);
+    commMoved = moved;
     if (moved) {
       const t = S[ce.to];
       t.eff += moved;
@@ -79,7 +81,7 @@ function compute() {
   // 成績表の「共通計」「専門計」と同じ、振替をする前の修得単位
   for (const t of secTotals) t.raw = t.sec.groups.flatMap(g => g.rows).filter(k => !S[k].d.calc && S[k].d.role !== "overlay").reduce((a, k) => a + S[k].have, 0);
   for (const t of secTotals) t.gap = t.rows.reduce((a, k) => a + gap(k), 0) + (t.sec.top ? 0 : pos(Math.max(partGap, overlayGap) - poolGap));
-  return { S, secTotals, total, short, remain: Math.max(pos(r.total - total), needMore) };
+  return { S, secTotals, total, short, commMoved, remain: Math.max(pos(r.total - total), needMore) };
 }
 
 /* ---------- 表示 ---------- */
@@ -132,7 +134,7 @@ function render() {
   if (!state.open) return;
   renderSelectors();
   $("sections").innerHTML = c.secTotals.map(t =>
-    `<section><div class="sechead"><h2>${esc(t.sec.name)}</h2><span class="sechead-r"><span class="num sec-raw">${t.raw} / ${t.sec.need}</span>${t.gap ? `<span class="pill bad">あと <span class="num">${t.gap}</span> 単位</span>` : `<span class="pill ok">達成</span>`}</span></div>` +
+    `<section><div class="sechead"><h2>${esc(t.sec.name)}</h2><span class="sechead-r"><span class="num sec-raw">${t.raw} / ${t.sec.need}</span>${c.commMoved ? `<span class="secnote">${t.sec.top ? `共通教育から${c.commMoved}単位を振替` : `専門自由科目へ${c.commMoved}単位を振替`}</span>` : ""}</span></div>` +
     t.sec.groups.map(g => (g.name ? `<p class="group">${esc(g.name)}</p>` : "") + g.rows.map(k => rowHtml(k, S[k])).join("")).join("") +
     `</section>`).join("");
   const sm = $("summary"), done = c.short.length === 0;
