@@ -149,7 +149,7 @@ function render() {
 
   const tr = r => `<tr><td>${esc(r.name)}</td><td class="n num">${r.u}</td><td${r.rows.length ? "" : ' class="miss"'}>${r.rows.length ? esc(r.g) : "未修得"}</td></tr>`;
   const table = `<details><summary>法曹コースの科目の成績</summary><table class="courses"><thead><tr><th>必修科目</th><th>単位</th><th>評価</th></tr></thead><tbody>${c.req.map(tr).join("")}</tbody>`
-    + `<thead><tr><th>選択必修</th><th>単位</th><th>評価</th></tr></thead><tbody>${c.ele.map(tr).join("")}</tbody></table></details>`;
+    + `<thead><tr><th>選択必修</th><th>単位</th><th>評価</th></tr></thead><tbody>${c.ele.map(tr).join("")}</tbody></table><p>選択必修は、必修科目のGPAに含めません。</p></details>`;
 
   $("result").innerHTML = `<div class="gpas">${gpaCard("全修得単位のGPA", c.all, "all")}${gpaCard("法曹コース必修科目のGPA", c.reqG, "req")}</div>`
     + goals + table;
