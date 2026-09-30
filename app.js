@@ -6,7 +6,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 
 let saved = {};
 try { saved = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) {}
-let state = { ruleId: saved.ruleId || RULES[0].id, program: saved.program || null, data: saved.data || {}, open: !!saved.open };
+let state = { ruleId: saved.ruleId || RULES[0].id, program: saved.program || null, data: saved.data || {}, open: !!saved.open, fromPdf: !!saved.fromPdf };
 const RAW = {};
 function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
@@ -58,7 +58,7 @@ function compute() {
   }
   for (const k of keys) {
     const s = S[k];
-    if (s.recv.length && s.d.sink) s.moves.push(`振替により受け取った単位：${s.recv.map(x => `${x.from} ${x.n}`).join("・")}`);
+    if (s.recv.length && s.d.sink) s.moves.push(`振替により受け取った単位：${s.recv.map(x => `${x.from} ${x.n}単位`).join("、")}`);
     else if (s.recv.length) s.moves.unshift(...s.recv.map(x => `${x.from}から${x.n}単位を受け取りました`));
     s.counted = s.d.sink ? s.eff : Math.min(s.eff, s.need);
   }
@@ -120,6 +120,9 @@ function render() {
   const r = rule(), c = compute(), S = c.S, st = values();
   $("result").hidden = !state.open;
   $("manualLink").hidden = state.open;
+  // 成績表を読み込んだ後は、使い方をしまって結果を先に見せる
+  $("howto").hidden = state.fromPdf;
+  $("loadedBar").hidden = !state.fromPdf;
   if (!state.open) return;
   renderSelectors();
   $("sections").innerHTML = c.secTotals.map(t =>
@@ -213,10 +216,11 @@ async function readPdf(file) {
     }
     if (!result || !result.rule) { setStatus("成績表の「単位修得状況」が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
     state.ruleId = result.rule.id; state.program = result.program;
-    state.data[result.rule.id] = { v: { ...result.v } }; state.open = true;
+    state.data[result.rule.id] = { v: { ...result.v } }; state.open = true; state.fromPdf = true;
     Object.keys(RAW).forEach(k => delete RAW[k]);
     save(); render();
-    setStatus("成績表を読み込みました。", true);
+    $("status").hidden = true;
+    $("result").scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   } catch (e) {
     console.error(e);
     setStatus("PDFを読み込めませんでした。ファイルを選び直すか、数字を入力してください。", false);
@@ -237,9 +241,11 @@ $("sel-prog").addEventListener("change", e => { state.program = e.target.value; 
 $("sel-year").addEventListener("change", e => pickRule(e.target.value, rule().faculty, rule().dept));
 $("sel-fac").addEventListener("change", e => pickRule(rule().year, e.target.value, rule().dept));
 $("sel-dept").addEventListener("change", e => pickRule(rule().year, rule().faculty, e.target.value));
-$("openManual").addEventListener("click", () => { state.open = true; save(); render(); });
+$("openManual").addEventListener("click", () => { state.open = true; state.fromPdf = false; save(); render(); });
 const fileEl = $("file"), drop = $("drop");
 fileEl.addEventListener("change", () => { readPdf(fileEl.files[0]); fileEl.value = ""; });
+const fileEl2 = $("file2");
+fileEl2.addEventListener("change", () => { readPdf(fileEl2.files[0]); fileEl2.value = ""; });
 // ページのどこにドラッグしても読み込む（枠の外に落としてもPDFが開かないように）
 let dragDepth = 0;
 document.addEventListener("dragenter", e => { e.preventDefault(); dragDepth++; drop.classList.add("over"); });
