@@ -20,7 +20,7 @@ const GOALS = [
 ];
 const GP = { A: 4, B: 3, C: 2, D: 1, F: 0 };
 const PASS = ["A", "B", "C", "D", "P", "R"];
-const LABEL = { 4: "A（90点以上）", 3: "B（80点以上）", 2: "C（70点以上）", 1: "D（60点以上）" };
+const LABEL = { 4: "A", 3: "B", 2: "C", 1: "D" };
 
 let state = {};
 try { state = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) {}
@@ -76,8 +76,8 @@ function advice(g, R, target, canAdd) {
     if (g.u && cur >= target) return { k: "ok", t: "基準に届いています。" };
     return { k: "bad", t: "基準に届いていません。" + (canAdd ? addMore(g, target) : "") };
   }
-  if (N <= 1e-9) return { k: "ok", t: `残りの${R}単位の成績にかかわらず、届きます。` };
-  if (N <= R + 1e-9) return { k: "move", t: `残りの${R}単位を修得すれば（D以上）、届きます。` };
+  // 必修科目はFでは修得できないので、「成績にかかわらず」とは書かない
+  if (N <= R + 1e-9) return { k: N <= 1e-9 ? "ok" : "move", t: `残りの${R}単位を修得すれば（D以上）、届きます。` };
   if (N > 4 * R + 1e-9) return { k: "bad", t: `残りの${R}単位をすべてAにしても${fmt((g.p + 4 * R) / (g.u + R))}で、届きません。` + (canAdd ? addMore(g, target) : "") };
   const b = Math.ceil(N / R - 1e-9) - 1; // 1〜3
   const k = Math.ceil(N - b * R - 1e-9);
@@ -91,7 +91,22 @@ function retake(how, list, g, R, target) {
   const lines = cand.slice(0, 3).map(x => `${esc(x.c.n)}（${x.c.g}）を再履修してAを取ると、GPAが${(Math.floor(x.up * 100 + 1e-9) / 100).toFixed(2)}上がります。`);
   // 残りをすべてAにしても届かないとき、再履修する科目もAにすれば届くか
   const best = (g.p + 4 * R + cand.reduce((a, x) => a + (4 - GP[x.c.g]) * x.c.u, 0)) / (g.u + R);
-  if (how.k === "bad" && best >= target - 1e-9) return { k: "move", t: how.t + "再履修も合わせれば届きます。", more: lines };
+  if (how.k === "bad" && best >= target - 1e-9) {
+    // 残りをすべてAにしたうえで、上がる幅の大きい科目から再履修し、最後の科目は必要な評価を出す
+    let E = target * (g.u + R) - g.p - 4 * R;
+    const parts = [];
+    for (const x of cand) {
+      const max = (4 - GP[x.c.g]) * x.c.u;
+      if (E <= max + 1e-9) {
+        const gp = Math.max(GP[x.c.g] + 1, GP[x.c.g] + Math.ceil(E / x.c.u - 1e-9));
+        parts.push(`${esc(x.c.n)}（${x.c.g}）を再履修して${gp >= 4 ? "Aを" : LABEL[gp] + "以上を"}`);
+        break;
+      }
+      parts.push(`${esc(x.c.n)}（${x.c.g}）を再履修してAを`);
+      E -= max;
+    }
+    return { k: "move", t: how.t, more: [`${R ? `残りの${R}単位をすべてAにし、` : ""}${parts.join("、")}取れば届きます。`] };
+  }
   return { k: how.k, t: how.t, more: lines };
 }
 function addMore(g, target) {
