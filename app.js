@@ -147,6 +147,8 @@ function pickRule(year, fac, dept) {
 }
 
 function render() {
+  // 国際法政学科・法学プログラムのときだけ、法曹コースのページを案内する
+  $("hosoLink").hidden = !(rule().dept === "国際法政学科" && program() === "law");
   const r = rule(), c = compute(), S = c.S, st = values();
   $("result").hidden = !state.open;
   $("manualLink").hidden = state.open;
