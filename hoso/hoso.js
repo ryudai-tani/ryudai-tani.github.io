@@ -17,8 +17,8 @@ const ELECTIVE = [["特修商法基礎演習", 2], ["特修刑事訴訟法演習
 const ELECTIVE_NEED = 2;
 const TOTAL = 124;
 const GOALS = [
-  { name: "早期卒業", all: 3.3, req: 2.9, note: "早期卒業には、ほかに、琉球大学法科大学院の特別選抜に合格し、入学を確約することが必要です。" },
-  { name: "法曹コースの修了", all: 3.0, req: 2.6 },
+  { name: "法曹コースの修了", short: "修了", all: 3.0, req: 2.6 },
+  { name: "早期卒業", short: "早期卒業", all: 3.3, req: 2.9, note: "早期卒業には、ほかに、琉球大学法科大学院の特別選抜に合格し、入学を確約することが必要です。" },
 ];
 const GP = { A: 4, B: 3, C: 2, D: 1, F: 0 };
 const PASS = ["A", "B", "C", "D", "P", "R"];
@@ -130,7 +130,7 @@ function render() {
   }
   const c = compute();
   const gpaCard = (label, g, key) => `<div class="gpa"><span class="label">${label}</span><span class="big num">${g.u ? fmt(g.p / g.u) : "－"}</span>`
-    + `<span class="req">早期卒業 ${fmt(GOALS[0][key])}以上・修了 ${fmt(GOALS[1][key])}以上</span></div>`;
+    + `<span class="req">${GOALS.map(G => `${G.short} ${fmt(G[key])}以上`).join("・")}</span></div>`;
 
   const row = (name, val, how) => `<div class="grow"><span class="name">${name}</span><span class="val num">${val}</span><p class="how ${how.k}">${how.t}</p>`
     + (how.more ? how.more.map(t => `<p class="how move">${t}</p>`).join("") : "") + `</div>`;
