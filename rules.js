@@ -25,21 +25,21 @@ const KOKUHOU_BASE = {
 // 専門教育（4年度で共通。科目の一覧だけ年度で違う）
 function kokuhouProf(L, opt) {
   return {
-    kiban: { name: "学部共通基盤科目（必修）", hint: "基礎演習Ⅰ・Ⅱ・Ⅲ", need: 6, pdf: ["学部共通基盤(必修)"] },
-    peace: { name: "平和共生・沖縄理解基盤科目", hint: "成績表の「平和共生沖縄(選択)」", need: 4, over: "free", pdf: ["平和共生沖縄(選択)"], list: L.peace },
-    gakka: { name: "学科基盤科目（必修）", hint: "法学概論・政治・国際関係学概論", need: 4, pdf: ["学科基盤(必修)"] },
-    lawDev: { name: "学科発展科目（法学系）", hint: "成績表の「学科発展・法学(選択)」", pdf: ["学科発展・法学(選択)"],
+    kiban: { name: "学部共通基盤科目（必修）", need: 6, pdf: ["学部共通基盤(必修)"] },
+    peace: { name: "平和共生・沖縄理解基盤科目", need: 4, over: "free", pdf: ["平和共生沖縄(選択)"], list: L.peace },
+    gakka: { name: "学科基盤科目（必修）", need: 4, pdf: ["学科基盤(必修)"] },
+    lawDev: { name: "学科発展科目（法学系）", pdf: ["学科発展・法学(選択)"],
       list: L.law + (opt.shahoNote ? "（基礎社会保障法は、法学プログラムではプログラム発展科目として数えます）" : ""),
       program: { law: { need: 16, over: "progDev" }, pol: { need: 4, over: "free" } } },
-    polDev: { name: "学科発展科目（政治・国際関係学系）", hint: "成績表の「学科発展・政国(選択)」", pdf: ["学科発展・政国(選択)"], list: L.pol,
+    polDev: { name: "学科発展科目（政治・国際関係学系）", pdf: ["学科発展・政国(選択)"], list: L.pol,
       program: { law: { need: 4, over: "free" }, pol: { need: 16, over: "progDev" } } },
     progKiban: { name: "プログラム基盤科目（必修）",
-      program: { law: { need: 8, hint: "法学演習Ⅰ〜Ⅳ", pdf: ["プロ基盤・法学(必修)"] },
-                 pol: { need: 12, hint: "政治・国際関係学演習Ⅰ〜Ⅳ・" + opt.sotsuken, pdf: ["プロ基盤・政国(必修)"] } } },
+      program: { law: { need: 8, pdf: ["プロ基盤・法学(必修)"] },
+                 pol: { need: 12, pdf: ["プロ基盤・政国(必修)"] } } },
     progDev: { name: "プログラム発展科目", need: 22, over: "free",
-      program: { law: { hint: "成績表の「プロ発展・法学(選択)」", pdf: ["プロ発展・法学(選択)"] },
-                 pol: { hint: "成績表の「プロ発展・政国(選択)」", pdf: ["プロ発展・政国(選択)"] } } },
-    free: { name: "専門自由科目", hint: "成績表の「自由科目」（他学科・他学部の専門科目）。振替の単位は自動で足します", sink: true, pdf: ["自由科目"],
+      program: { law: { pdf: ["プロ発展・法学(選択)"] },
+                 pol: { pdf: ["プロ発展・政国(選択)"] } } },
+    free: { name: "専門自由科目", sink: true, pdf: ["自由科目"],
       program: { law: { need: 26 }, pol: { need: 22 } } }
   };
 }
@@ -53,19 +53,19 @@ const PROF_GROUPS = [
 function kyotsuOld(L) {
   return {
     health: { name: "健康運動系科目", need: 2, pdf: ["健康運動"] },
-    jinbun: { name: "人文系科目", hint: "成績表の「人文計」", need: 2, role: "part", pdf: ["人文計"] },
-    shakai: { name: "社会系科目", hint: "成績表の「社会計」", need: 2, role: "part", pdf: ["社会計"] },
+    jinbun: { name: "人文系科目", need: 2, role: "part", pdf: ["人文計"] },
+    shakai: { name: "社会系科目", need: 2, role: "part", pdf: ["社会計"] },
     shizen: { name: "自然系科目", need: 2, role: "part", pdf: ["自然"] },
-    sogo: { name: "総合科目", hint: "「総合」と「総合(平和共生)」の合計", need: 0, pdf: ["総合", "総合(平和共生)"] },
-    ryudai: { name: "琉大特色・地域創生科目", hint: "「琉特・地創」と「琉特・地創(平和共生)」の合計", need: 0, pdf: ["琉特・地創", "琉特・地創(平和共生)"] },
+    sogo: { name: "総合科目", need: 0, pdf: ["総合", "総合(平和共生)"] },
+    ryudai: { name: "琉大特色・地域創生科目", need: 0, pdf: ["琉特・地創", "琉特・地創(平和共生)"] },
     career: { name: "キャリア関係科目", need: 0, pdf: ["キャリア関係"] },
-    joho: { name: "情報関係科目", hint: "情報科学演習", need: 2, role: "part", pdf: ["情報関係"] },
+    joho: { name: "情報関係科目", need: 2, role: "part", pdf: ["情報関係"] },
     pool: { name: "その他の領域",
       program: {
-        law: { name: "共通教育の合計（外国語・健康運動系を除く）", need: 20, hint: "成績表の「人社等計」と同じ数字です", calc: { sum: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho"] } },
+        law: { name: "共通教育の合計（外国語・健康運動系を除く）", need: 20, calc: { sum: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho"] } },
         pol: { name: "共通教育の合計（健康運動系を除く）", need: 32, hint: "外国語を含みます", calc: { sum: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho", "lang"] } } } },
-    peaceGroup: { name: "うち平和共生・沖縄理解科目群", hint: "成績表の「平和共生沖縄理解計」", need: 6, role: "overlay", pdf: ["(平和共生沖縄理解計)"], list: L.grp },
-    lang: { name: "外国語", hint: "成績表の「外国語計」（第1外国語8単位・第2外国語4単位）", need: 12, pdf: ["（外国語計）"],
+    peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", pdf: ["(平和共生沖縄理解計)"], list: L.grp },
+    lang: { name: "外国語", hint: "（第1外国語8単位・第2外国語4単位）", need: 12, pdf: ["（外国語計）"],
       program: { pol: { role: "part" } } }
   };
 }
@@ -80,8 +80,8 @@ function kyotsuNew(L) {
   return {
     health: { name: "健康運動系科目", need: 2 },
     career: { name: "キャリア・ダイバーシティ科目", need: 2,
-      program: { law: { hint: "キャリア形成入門", role: "part" }, pol: { hint: "キャリア形成入門。政治・国際関係学プログラムでは、その他の領域に含めません" } } },
-    data: { name: "データリテラシー科目", hint: "情報科学演習", need: 2, role: "part" },
+      program: { law: { role: "part" }, pol: {  } } },
+    data: { name: "データリテラシー科目", need: 2, role: "part" },
     jinsha: { name: "人文社会科学系科目", role: "part", program: { law: { need: 0 }, pol: { need: 4 } } },
     shizen: { name: "自然科学系科目", need: 2, role: "part" },
     ryudai: { name: "琉大特色・地域創生科目", need: 0 },
@@ -91,7 +91,7 @@ function kyotsuNew(L) {
         law: { name: "共通教育の合計（外国語・健康運動系を除く）", need: 20, calc: { sum: ["career", "data", "jinsha", "shizen", "ryudai", "global"] } },
         pol: { name: "共通教育の合計（健康運動系・キャリア・ダイバーシティ科目を除く）", need: 30, hint: "外国語を含みます", calc: { sum: ["data", "jinsha", "shizen", "ryudai", "global", "lang"] } } } },
     peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
-    lang: { name: "外国語", hint: "第1外国語8単位・第2外国語4単位", need: 12, program: { pol: { role: "part" } } }
+    lang: { name: "外国語", hint: "（第1外国語8単位・第2外国語4単位）", need: 12, program: { pol: { role: "part" } } }
   };
 }
 const KYOTSU_NEW_GROUPS = [
@@ -154,7 +154,7 @@ function kyotsuOldSimple(L, opt) {
     sogo: { name: "総合科目", need: 0 },
     ryudai: { name: "琉大特色・地域創生科目", need: 0 },
     career: { name: "キャリア関係科目", need: opt.career || 0, role: opt.career ? "part" : undefined },
-    joho: { name: "情報関係科目", hint: "情報科学演習", need: 2, role: "part" },
+    joho: { name: "情報関係科目", need: 2, role: "part" },
     pool: { name: "共通教育の合計（外国語・健康運動系を除く）", need: opt.pool, calc: { sum: parts } },
     peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
     lang: { name: "外国語", hint: opt.langHint, need: opt.lang }
@@ -176,24 +176,24 @@ function ningenRule(year, L) {
   const pp = (key, v) => perProgram(programs, key, v);
   const prof = {
     kiban: { name: "学部共通基盤科目（必修）", program: pp("need", [6, 4, 6]) },
-    peace: { name: "学部共通科目（選択科目）", hint: "平和共生・沖縄理解基盤科目", need: 4, over: "free" },
+    peace: { name: "学部共通科目（選択科目）", need: 4, over: "free" },
     gakkaKiban: { name: "学科基盤科目", need: 6, over: "progDev" },
     gakkaDev: { name: "学科発展科目", need: 4, over: "progDev" },
     coreKiban: { name: "プログラムコア基盤科目", program: pp("need", [4, 12, 8]) },
     coreDev: { name: "プログラムコア発展科目", over: "progDev", program: pp("need", [8, 12, 8]) },
     progDev: { name: "プログラム発展科目", over: "free", program: pp("need", [30, 22, 26]) },
-    free: { name: "専門自由科目", hint: "他プログラム・他学科・他学部の専門科目。振替の単位は自動で足します", sink: true, program: pp("need", [26, 24, 26]) }
+    free: { name: "専門自由科目", sink: true, program: pp("need", [26, 24, 26]) }
   };
   let kyotsu, groups, excess;
   if (oldK) {
-    kyotsu = kyotsuOldSimple(L, { pool: 22, career: 2, lang: 12, langHint: "第1外国語8単位・第2外国語4単位" });
+    kyotsu = kyotsuOldSimple(L, { pool: 22, career: 2, lang: 12, langHint: "（第1外国語8単位・第2外国語4単位）" });
     groups = KYOTSU_OLD_SIMPLE_GROUPS;
     excess = { cap: 10, rows: ["health", "pool", "lang"] };
   } else {
     kyotsu = {
       health: { name: "健康運動系科目", need: 2 },
-      data: { name: "データリテラシー科目", hint: "情報科学演習", need: 2, role: "part" },
-      career: { name: "キャリア・ダイバーシティ科目", hint: "キャリア形成入門", need: 2, role: "part" },
+      data: { name: "データリテラシー科目", need: 2, role: "part" },
+      career: { name: "キャリア・ダイバーシティ科目", need: 2, role: "part" },
       jinsha: { name: "人文社会科学系科目", need: 0 },
       shizen: { name: "自然科学系科目", need: 0 },
       ryudai: { name: "琉大特色・地域創生科目", need: 0 },
@@ -201,7 +201,7 @@ function ningenRule(year, L) {
       three: { name: "人文社会科学系・自然科学系・琉大特色の合計", need: 8, role: "part", calc: { sum: ["jinsha", "shizen", "ryudai"] } },
       pool: { name: "共通教育の合計（外国語・健康運動系を除く）", need: 22, calc: { sum: ["data", "career", "jinsha", "shizen", "ryudai", "global"] } },
       peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
-      lang: { name: "外国語", hint: "第1外国語8単位・第2外国語4単位", need: 12 }
+      lang: { name: "外国語", hint: "（第1外国語8単位・第2外国語4単位）", need: 12 }
     };
     groups = [
       { name: "", rows: ["health"] },
@@ -243,28 +243,28 @@ function ryuasiaRule(year, L) {
     gakkaKiban: { name: "学科基盤科目", hint: "他プログラムのプログラムコア基盤科目", need: 4, over: "free" },
     gakkaDev: { name: "学科発展科目", hint: "他プログラムのプログラム発展科目", need: 4, over: "free" },
     coreKiban: { name: "プログラムコア基盤科目", need: 8, over: "free" },
-    coreDev: { name: "プログラムコア発展科目", hint: "卒業論文（必修）4単位を含む", need: 12, over: "free" },
+    coreDev: { name: "プログラムコア発展科目", need: 12, over: "free" },
     progDev: { name: "プログラム発展科目", need: 28, over: "free" },
-    free: { name: "専門自由科目", hint: "他学科・他学部の専門科目。振替の単位は自動で足します", sink: true, need: oldK ? 22 : 24 }
+    free: { name: "専門自由科目", sink: true, need: oldK ? 22 : 24 }
   };
   let kyotsu, groups, excessRows, commonNeed;
   if (oldK) {
-    kyotsu = kyotsuOldSimple(L, { pool: 18, lang: 16, langHint: "第1外国語8単位・第2外国語8単位" });
+    kyotsu = kyotsuOldSimple(L, { pool: 18, lang: 16, langHint: "（第1外国語8単位・第2外国語8単位）" });
     groups = KYOTSU_OLD_SIMPLE_GROUPS;
     excessRows = ["health", "pool", "lang"];
     commonNeed = 36;
   } else {
     kyotsu = {
       health: { name: "健康運動系科目", need: 2 },
-      data: { name: "データリテラシー科目", hint: "情報科学演習", need: 2 },
-      career: { name: "キャリア・ダイバーシティ科目", hint: "キャリア形成入門", need: 2 },
+      data: { name: "データリテラシー科目", need: 2 },
+      career: { name: "キャリア・ダイバーシティ科目", need: 2 },
       jinsha: { name: "人文社会科学系科目", need: 2, role: "part" },
       shizen: { name: "自然科学系科目", need: 2, role: "part" },
       ryudai: { name: "琉大特色・地域創生科目", need: 2, role: "part" },
       global: { name: "グローバル科目", need: 0 },
       pool: { name: "共通教育の合計（健康運動系・データリテラシー・キャリア・ダイバーシティ・外国語を除く）", need: 16, calc: { sum: ["jinsha", "shizen", "ryudai", "global"] } },
       peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
-      lang: { name: "外国語", hint: "第1外国語8単位・第2外国語4単位", need: 12 }
+      lang: { name: "外国語", hint: "（第1外国語8単位・第2外国語4単位）", need: 12 }
     };
     groups = [
       { name: "基盤領域", rows: ["health", "data", "career"] },
