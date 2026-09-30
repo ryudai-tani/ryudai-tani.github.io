@@ -62,8 +62,8 @@ function kyotsuOld(L) {
     joho: { name: "情報関係科目", hint: "情報科学演習", need: 2, role: "part", pdf: ["情報関係"] },
     pool: { name: "その他の領域",
       program: {
-        law: { need: 20, hint: "成績表の「人社等計」（外国語と健康運動系を除く共通教育の合計）", calc: { sum: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho"] } },
-        pol: { need: 32, hint: "健康運動系を除く共通教育の合計（外国語を含む）", calc: { sum: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho", "lang"] } } } },
+        law: { name: "共通教育の合計（外国語・健康運動系を除く）", need: 20, hint: "便覧の「その他の領域」。成績表の「人社等計」と同じ数字です", calc: { sum: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho"] } },
+        pol: { name: "共通教育の合計（健康運動系を除く）", need: 32, hint: "便覧の「その他の領域」。外国語を含みます", calc: { sum: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho", "lang"] } } } },
     peaceGroup: { name: "うち平和共生・沖縄理解科目群", hint: "成績表の「平和共生沖縄理解計」", need: 6, role: "overlay", pdf: ["(平和共生沖縄理解計)"], list: L.grp },
     lang: { name: "外国語", hint: "成績表の「外国語計」（第1外国語8単位・第2外国語4単位）", need: 12, pdf: ["（外国語計）"],
       program: { pol: { role: "part" } } }
@@ -88,8 +88,8 @@ function kyotsuNew(L) {
     global: { name: "グローバル科目", need: 0 },
     pool: { name: "その他の領域",
       program: {
-        law: { need: 20, hint: "健康運動系と外国語を除く共通教育の合計", calc: { sum: ["career", "data", "jinsha", "shizen", "ryudai", "global"] } },
-        pol: { need: 30, hint: "健康運動系とキャリア・ダイバーシティ科目を除く共通教育の合計（外国語を含む）", calc: { sum: ["data", "jinsha", "shizen", "ryudai", "global", "lang"] } } } },
+        law: { name: "共通教育の合計（外国語・健康運動系を除く）", need: 20, hint: "便覧の「その他の領域」", calc: { sum: ["career", "data", "jinsha", "shizen", "ryudai", "global"] } },
+        pol: { name: "共通教育の合計（健康運動系・キャリア・ダイバーシティ科目を除く）", need: 30, hint: "便覧の「その他の領域」。外国語を含みます", calc: { sum: ["data", "jinsha", "shizen", "ryudai", "global", "lang"] } } } },
     peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
     lang: { name: "外国語", hint: "第1外国語8単位・第2外国語4単位", need: 12, program: { pol: { role: "part" } } }
   };
@@ -155,7 +155,7 @@ function kyotsuOldSimple(L, opt) {
     ryudai: { name: "琉大特色・地域創生科目", need: 0 },
     career: { name: "キャリア関係科目", need: opt.career || 0, role: opt.career ? "part" : undefined },
     joho: { name: "情報関係科目", hint: "情報科学演習", need: 2, role: "part" },
-    pool: { name: "その他の領域", hint: "外国語と健康運動系を除く共通教育の合計", need: opt.pool, calc: { sum: parts } },
+    pool: { name: "共通教育の合計（外国語・健康運動系を除く）", hint: "便覧の「その他の領域」", need: opt.pool, calc: { sum: parts } },
     peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
     lang: { name: "外国語", hint: opt.langHint, need: opt.lang }
   };
@@ -199,7 +199,7 @@ function ningenRule(year, L) {
       ryudai: { name: "琉大特色・地域創生科目", need: 0 },
       global: { name: "グローバル科目", need: 0 },
       three: { name: "人文社会科学系・自然科学系・琉大特色の合計", need: 8, role: "part", calc: { sum: ["jinsha", "shizen", "ryudai"] } },
-      pool: { name: "その他の領域", hint: "外国語と健康運動系を除く共通教育の合計", need: 22, calc: { sum: ["data", "career", "jinsha", "shizen", "ryudai", "global"] } },
+      pool: { name: "共通教育の合計（外国語・健康運動系を除く）", hint: "便覧の「その他の領域」", need: 22, calc: { sum: ["data", "career", "jinsha", "shizen", "ryudai", "global"] } },
       peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
       lang: { name: "外国語", hint: "第1外国語8単位・第2外国語4単位", need: 12 }
     };
@@ -262,7 +262,7 @@ function ryuasiaRule(year, L) {
       shizen: { name: "自然科学系科目", need: 2, role: "part" },
       ryudai: { name: "琉大特色・地域創生科目", need: 2, role: "part" },
       global: { name: "グローバル科目", need: 0 },
-      pool: { name: "その他の領域", hint: "基盤領域（健康運動系・データリテラシー・キャリア・ダイバーシティ・外国語）を除く共通教育の合計", need: 16, calc: { sum: ["jinsha", "shizen", "ryudai", "global"] } },
+      pool: { name: "共通教育の合計（健康運動系・データリテラシー・キャリア・ダイバーシティ・外国語を除く）", hint: "便覧の「その他の領域」", need: 16, calc: { sum: ["jinsha", "shizen", "ryudai", "global"] } },
       peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
       lang: { name: "外国語", hint: "第1外国語8単位・第2外国語4単位", need: 12 }
     };

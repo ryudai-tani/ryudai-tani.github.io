@@ -85,7 +85,7 @@ function stateHtml(s) {
   const pct = Math.min(100, s.eff / s.need * 100);
   const pill = done ? `<span class="pill ok">達成</span>` : `<span class="pill bad">あと <span class="num">${s.need - s.eff}</span> 単位</span>`;
   const min = s.d.role === "part" || s.d.role === "overlay";
-  return `${pill}<div class="bar"><i class="${done ? "ok" : ""}" style="width:${pct}%"></i></div><span class="req num">${s.d.sink ? s.eff : Math.min(s.eff, s.need)} / ${s.need}${min ? " 以上" : ""}</span>`;
+  return `${pill}<div class="bar"><i class="${done ? "ok" : ""}" style="width:${pct}%"></i></div><span class="req num">${s.d.sink || s.d.calc ? s.eff : Math.min(s.eff, s.need)} / ${s.need}${min || s.d.calc ? " 以上" : ""}</span>`;
 }
 function rowHtml(k, s) {
   const d = s.d, st = values();
