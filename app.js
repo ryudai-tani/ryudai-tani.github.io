@@ -134,7 +134,7 @@ function render() {
   if (!state.open) return;
   renderSelectors();
   $("sections").innerHTML = c.secTotals.map(t =>
-    `<section><div class="sechead"><h2>${esc(t.sec.name)}</h2><span class="sechead-r"><span class="num sec-raw">${t.raw} / ${t.sec.need}</span>${c.commMoved ? `<span class="secnote">${t.sec.top ? `共通教育から${c.commMoved}単位を振替` : `専門自由科目へ${c.commMoved}単位を振替`}</span>` : ""}</span></div>` +
+    `<section><div class="sechead"><h2>${esc(t.sec.name)}</h2><span class="sechead-r"><span class="num sec-raw">${t.raw} / ${t.sec.need}</span>${c.commMoved ? `<span class="secnote">${t.sec.top ? `＋${c.commMoved}単位（共通教育から振替）` : `−${c.commMoved}単位（専門自由科目へ振替）`}</span>` : ""}</span></div>` +
     t.sec.groups.map(g => (g.name ? `<p class="group">${esc(g.name)}</p>` : "") + g.rows.map(k => rowHtml(k, S[k])).join("")).join("") +
     `</section>`).join("");
   const sm = $("summary"), done = c.short.length === 0;
