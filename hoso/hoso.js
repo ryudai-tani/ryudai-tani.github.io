@@ -84,11 +84,14 @@ function advice(g, R, target, canAdd) {
   return { k: "move", t: k >= R ? `残りの${R}単位を、すべて${LABEL[b + 1]}以上にすれば届きます。` : `残りの${R}単位のうち、${LABEL[b + 1]}を${k}単位以上、ほかを${LABEL[b]}以上にすれば届きます。` };
 }
 // 再履修できる科目（D・F）と、Aを取ったときに上がるGPA
-function retake(how, list, g, R) {
+function retake(how, list, g, R, target) {
   if (how.k === "ok") return how;
   const cand = list.filter(c => c.g === "D" || c.g === "F").map(c => ({ c, up: (4 - GP[c.g]) * c.u / (g.u + R) })).sort((a, b) => b.up - a.up);
   if (!cand.length) return how;
   const lines = cand.slice(0, 3).map(x => `${esc(x.c.n)}（${x.c.g}）を再履修してAを取ると、GPAが${(Math.floor(x.up * 100 + 1e-9) / 100).toFixed(2)}上がります。`);
+  // 残りをすべてAにしても届かないとき、再履修する科目もAにすれば届くか
+  const best = (g.p + 4 * R + cand.reduce((a, x) => a + (4 - GP[x.c.g]) * x.c.u, 0)) / (g.u + R);
+  if (how.k === "bad" && best >= target - 1e-9) return { k: "move", t: how.t + "再履修も合わせれば届きます。", more: lines };
   return { k: how.k, t: how.t, more: lines };
 }
 function addMore(g, target) {
@@ -123,9 +126,9 @@ function render() {
     const eleRest = c.ele.filter(r => !r.done).map(r => r.name);
     items.push(row("選択必修", `${c.eleDone} / ${ELECTIVE_NEED}科目`,
       c.eleLeft ? { k: "bad", t: `あと${c.eleLeft}科目です（${eleRest.join("・")}${eleRest.length > c.eleLeft ? "から選択" : ""}）。` } : { k: "ok", t: "修得しています。" }));
-    const a1 = retake(advice(c.reqG, c.reqNewUnits, G.req, false), c.reqCs, c.reqG, c.reqNewUnits);
+    const a1 = retake(advice(c.reqG, c.reqNewUnits, G.req, false), c.reqCs, c.reqG, c.reqNewUnits, G.req);
     items.push(row("必修科目のGPA", `${c.reqG.u ? fmt(c.reqG.p / c.reqG.u) : "－"} / ${fmt(G.req)}`, a1));
-    const a2 = retake(advice(c.all, c.plan, G.all, true), c.cs, c.all, c.plan);
+    const a2 = retake(advice(c.all, c.plan, G.all, true), c.cs, c.all, c.plan, G.all);
     items.push(row("全修得単位のGPA", `${c.all.u ? fmt(c.all.p / c.all.u) : "－"} / ${fmt(G.all)}`, a2));
     const gpaBad = a1.k === "bad" || a2.k === "bad";
     const allOk = unitsOk && !c.reqLeft.length && !c.eleLeft && a1.k === "ok" && a2.k === "ok";
