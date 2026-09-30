@@ -239,7 +239,14 @@ $("sel-dept").addEventListener("change", e => pickRule(rule().year, rule().facul
 $("openManual").addEventListener("click", () => { state.open = true; save(); render(); });
 const fileEl = $("file"), drop = $("drop");
 fileEl.addEventListener("change", () => { readPdf(fileEl.files[0]); fileEl.value = ""; });
-drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
-drop.addEventListener("dragleave", () => drop.classList.remove("over"));
-drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); readPdf(e.dataTransfer.files[0]); });
+// ページのどこにドラッグしても読み込む（枠の外に落としてもPDFが開かないように）
+let dragDepth = 0;
+document.addEventListener("dragenter", e => { e.preventDefault(); dragDepth++; drop.classList.add("over"); });
+document.addEventListener("dragover", e => { e.preventDefault(); });
+document.addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; drop.classList.remove("over"); } });
+document.addEventListener("drop", e => {
+  e.preventDefault(); dragDepth = 0; drop.classList.remove("over");
+  const f = e.dataTransfer && e.dataTransfer.files[0];
+  if (f) readPdf(f);
+});
 render();
