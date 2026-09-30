@@ -63,6 +63,10 @@ h2{font-size:1.1rem;margin:0}
 .summary ul{margin:4px 0 0;padding-left:1.2em;color:var(--muted);font-size:.9rem}
 .sumline{grid-column:1/-1;display:flex;gap:10px;align-items:baseline;border-top:1px solid var(--line);padding-top:8px;margin-top:4px}
 .sumline .num{font-size:1.05rem}
+.plan-note{margin:0;font-weight:700;color:var(--move);background:var(--move-soft);border-radius:8px;padding:6px 12px}
+.plan-toggle{margin:0}
+.planrow{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--move);background:var(--move-soft);border-radius:6px;padding:4px 10px}
+.planrow input{width:72px;font:inherit;font-size:.95rem;text-align:right;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
 .why{grid-column:1/-1;margin:0;font-size:.88rem;color:var(--muted)}
 .totalbar{grid-column:1/-1;height:8px;border-radius:4px;background:var(--bar);overflow:hidden;margin-top:6px}
 .totalbar i{display:block;height:100%;background:var(--accent)}
@@ -159,7 +163,9 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <label>学科<select id="sel-dept"></select></label>
       <label>プログラム<select id="sel-prog"></select></label>
     </div>
+    <p class="plan-note" id="planNote" hidden></p>
     <div class="summary" id="summary"></div>
+    <p class="plan-toggle"><button type="button" class="linkbtn" id="togglePlan">これから修得する単位を入れて試す</button></p>
     <div id="sections"></div>
   </div>
 

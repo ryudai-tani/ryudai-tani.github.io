@@ -6,7 +6,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 
 let saved = {};
 try { saved = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) {}
-let state = { ruleId: saved.ruleId || RULES[0].id, program: saved.program || null, data: saved.data || {}, open: !!saved.open, fromPdf: !!saved.fromPdf };
+let state = { ruleId: saved.ruleId || RULES[0].id, program: saved.program || null, data: saved.data || {}, open: !!saved.open, fromPdf: !!saved.fromPdf, plan: !!saved.plan };
 const RAW = {};
 function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
@@ -25,11 +25,14 @@ function compute() {
   const r = rule(), v = values().v, p = program();
   const keys = Object.keys(r.rows);
   const S = {};
+  // 予定の単位（これから修得する見込み）を足して計算する
+  const plan = state.plan ? (values().plan || {}) : {};
+  const val = x => (v[x] || 0) + (plan[x] || 0);
   for (const k of keys) {
     const d = def(k);
-    const vals = d.calc ? (d.calc.sum || d.calc.max || d.calc.second).map(x => v[x] || 0) : [];
+    const vals = d.calc ? (d.calc.sum || d.calc.max || d.calc.second).map(val) : [];
     const sorted = [...vals].sort((a, b) => b - a);
-    const have = !d.calc ? (v[k] || 0)
+    const have = !d.calc ? val(k)
       : d.calc.max ? (sorted[0] || 0)
       : d.calc.second ? (sorted[1] || 0)
       : vals.reduce((a, x) => a + x, 0);
@@ -86,7 +89,7 @@ function compute() {
   const short = order.filter(k => S[k].need > 0 && S[k].eff < S[k].need);
   // 科目区分ごとに足りない単位（見出しに出す）
   // 成績表の「共通計」「専門計」と同じ、振替をする前の修得単位
-  for (const t of secTotals) t.raw = t.sec.groups.flatMap(g => g.rows).filter(k => !S[k].d.calc && S[k].d.role !== "overlay").reduce((a, k) => a + S[k].have, 0);
+  for (const t of secTotals) t.raw = t.sec.groups.flatMap(g => g.rows).filter(k => !S[k].d.calc && S[k].d.role !== "overlay").reduce((a, k) => a + (v[k] || 0), 0);
   for (const t of secTotals) t.gap = t.rows.reduce((a, k) => a + gap(k), 0) + (t.sec.top ? 0 : pos(Math.max(partGap, overlayGap) - poolGap));
   return { S, secTotals, total, short, commMoved, remain: Math.max(pos(r.total - total), needMore) };
 }
@@ -108,7 +111,10 @@ function rowHtml(k, s) {
   const field = d.calc ? `<div class="calcval num">${s.have}</div>`
     : `<input id="in-${k}" type="number" inputmode="numeric" min="0" step="1" value="${k in RAW ? esc(RAW[k]) : (st.v[k] || 0)}" aria-label="${esc(d.name)}の修得単位数">`;
   const det = d.list ? `<details><summary>対象の科目</summary><p>${esc(d.list)}</p></details>` : "";
-  return `<div class="row${d.calc ? " calc" : ""}"><div class="name">${esc(d.name)}${d.hint ? `<small>${esc(d.hint)}</small>` : ""}</div>${field}<div class="state">${stateHtml(s)}</div>${moves}${det}</div>`;
+  const pv = (st.plan || {})[k] || "";
+  const planField = state.plan && !d.calc
+    ? `<label class="planrow">これから修得する予定<input id="pl-${k}" type="number" inputmode="numeric" min="0" step="1" value="${pv}" placeholder="0">単位</label>` : "";
+  return `<div class="row${d.calc ? " calc" : ""}"><div class="name">${esc(d.name)}${d.hint ? `<small>${esc(d.hint)}</small>` : ""}</div>${field}<div class="state">${stateHtml(s)}</div>${planField}${moves}${det}</div>`;
 }
 
 const opts = (list, cur, label = x => x) => list.map(x => `<option value="${esc(x)}"${x === cur ? " selected" : ""}>${esc(label(x))}</option>`).join("");
@@ -142,20 +148,25 @@ function render() {
   renderSelectors();
   $("sections").innerHTML = c.secTotals.map(t =>
     `<section><div class="sechead"><h2>${esc(t.sec.name)}</h2><span class="sechead-r"><span class="num sec-raw">${t.raw} / ${t.sec.need}</span></span></div>` +
-    t.sec.groups.map(g => (g.name ? `<p class="group">${esc(g.name)}</p>` : "") + g.rows.filter(k => !S[k].d.hidden && !(S[k].d.lang && state.fromPdf)).map(k => rowHtml(k, S[k])).join("")).join("") +
+    t.sec.groups.map(g => (g.name ? `<p class="group">${esc(g.name)}</p>` : "") + g.rows.filter(k => !S[k].d.hidden && !(S[k].d.lang && state.fromPdf && !state.plan)).map(k => rowHtml(k, S[k])).join("")).join("") +
     `</section>`).join("");
   const sm = $("summary"), done = c.short.length === 0;
   sm.className = "summary" + (done ? " done" : "");
   const names = c.short.map(k => `<li>${esc(S[k].d.name)}：あと<span class="num">${S[k].need - S[k].eff}</span>単位</li>`).join("");
   const rawTotal = c.secTotals.reduce((a, t) => a + t.raw, 0);
-  const why = !done && c.remain > r.total - rawTotal && c.short.length === 1
-    ? `<p class="why">合計は${rawTotal}単位ですが、${esc(S[c.short[0]].d.name)}が${S[c.short[0]].need - S[c.short[0]].eff}単位足りないため、あと${c.remain}単位です。</p>`
-    : !done && c.remain > r.total - rawTotal
-    ? `<p class="why">合計は${rawTotal}単位ですが、足りない科目区分があるため、あと${c.remain}単位です。</p>` : "";
+  const planSum = state.plan ? Object.values(st.plan || {}).reduce((a, x) => a + x, 0) : 0;
+  $("togglePlan").textContent = state.plan ? "予定の単位を消して、成績表だけの結果に戻す" : "これから修得する単位を入れて試す";
+  $("planNote").hidden = !planSum;
+  $("planNote").textContent = `予定の${planSum}単位を含めた結果です。`;
+  const shownTotal = rawTotal + planSum;
+  const why = !done && c.remain > r.total - shownTotal && c.short.length === 1
+    ? `<p class="why">合計は${shownTotal}単位ですが、${esc(S[c.short[0]].d.name)}が${S[c.short[0]].need - S[c.short[0]].eff}単位足りないため、あと${c.remain}単位です。</p>`
+    : !done && c.remain > r.total - shownTotal
+    ? `<p class="why">合計は${shownTotal}単位ですが、足りない科目区分があるため、あと${c.remain}単位です。</p>` : "";
   sm.innerHTML = (done
-    ? `<div class="big num">${rawTotal}<small>/ ${r.total}単位</small></div><div class="msg">卒業要件をすべて満たしています。</div>`
+    ? `<div class="big num">${shownTotal}<small>/ ${r.total}単位</small></div><div class="msg">卒業要件をすべて満たしています。</div>`
     : `<div class="big num"><small>あと</small>${c.remain}<small>単位</small></div><div><div class="msg">卒業まで、あと${c.remain}単位です。</div><ul>${names}</ul></div>`)
-    + `<div class="sumline"><span>合計</span><span class="num">${rawTotal} / ${r.total}</span></div>${why}`
+    + `<div class="sumline"><span>合計</span><span class="num">${shownTotal} / ${r.total}</span></div>${why}`
     + `<div class="totalbar" aria-hidden="true"><i style="width:${Math.min(100, c.total / r.total * 100)}%"></i></div>`;
   $("source").textContent = `${r.faculty} ${r.dept}（${r.year}年度入学）の卒業要件は、${r.source}で計算しています。`;
   $("transfer").textContent = `選択科目の要件を超えた単位と、共通教育の要件を超えた単位（${r.commonExcess.cap}単位まで）は、専門自由科目に振り替えます。` + (r.transferNote || "");
@@ -237,7 +248,7 @@ async function readPdf(file) {
     }
     if (!result || !result.rule) { setStatus("成績表の「単位修得状況」が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
     state.ruleId = result.rule.id; state.program = result.program;
-    state.data[result.rule.id] = { v: { ...result.v } }; state.open = true; state.fromPdf = true;
+    state.data[result.rule.id] = { v: { ...result.v } }; state.open = true; state.fromPdf = true; state.plan = false;
     Object.keys(RAW).forEach(k => delete RAW[k]);
     save(); render();
     $("status").hidden = true;
@@ -251,10 +262,17 @@ async function readPdf(file) {
 /* ---------- 操作 ---------- */
 $("sections").addEventListener("input", e => {
   const el = e.target;
-  if (!el.id || !el.id.startsWith("in-")) return;
-  const k = el.id.slice(3), st = values();
-  st.v[k] = Math.max(0, parseInt(el.value, 10) || 0);
-  RAW[k] = el.value; save();
+  if (!el.id) return;
+  const st = values();
+  if (el.id.startsWith("pl-")) {
+    st.plan = st.plan || {};
+    st.plan[el.id.slice(3)] = Math.max(0, parseInt(el.value, 10) || 0);
+  } else if (el.id.startsWith("in-")) {
+    const k = el.id.slice(3);
+    st.v[k] = Math.max(0, parseInt(el.value, 10) || 0);
+    RAW[k] = el.value;
+  } else return;
+  save();
   const id = el.id; render();
   const again = $(id); if (again) again.focus();
 });
@@ -262,6 +280,10 @@ $("sel-prog").addEventListener("change", e => { state.program = e.target.value; 
 $("sel-year").addEventListener("change", e => pickRule(e.target.value, rule().faculty, rule().dept));
 $("sel-fac").addEventListener("change", e => pickRule(rule().year, e.target.value, rule().dept));
 $("sel-dept").addEventListener("change", e => pickRule(rule().year, rule().faculty, e.target.value));
+$("togglePlan").addEventListener("click", () => {
+  if (state.plan) { values().plan = {}; state.plan = false; } else state.plan = true;
+  save(); render();
+});
 $("openManual").addEventListener("click", () => { state.open = true; state.fromPdf = false; save(); render(); });
 const fileEl = $("file"), drop = $("drop");
 fileEl.addEventListener("change", () => { readPdf(fileEl.files[0]); fileEl.value = ""; });
