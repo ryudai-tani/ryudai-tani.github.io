@@ -142,7 +142,7 @@ function render() {
   renderSelectors();
   $("sections").innerHTML = c.secTotals.map(t =>
     `<section><div class="sechead"><h2>${esc(t.sec.name)}</h2><span class="sechead-r"><span class="num sec-raw">${t.raw} / ${t.sec.need}</span></span></div>` +
-    t.sec.groups.map(g => (g.name ? `<p class="group">${esc(g.name)}</p>` : "") + g.rows.filter(k => !(S[k].d.lang && state.fromPdf)).map(k => rowHtml(k, S[k])).join("")).join("") +
+    t.sec.groups.map(g => (g.name ? `<p class="group">${esc(g.name)}</p>` : "") + g.rows.filter(k => !S[k].d.hidden && !(S[k].d.lang && state.fromPdf)).map(k => rowHtml(k, S[k])).join("")).join("") +
     `</section>`).join("");
   const sm = $("summary"), done = c.short.length === 0;
   sm.className = "summary" + (done ? " done" : "");

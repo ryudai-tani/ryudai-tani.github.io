@@ -26,7 +26,8 @@ function langRows(total, second, extra) {
     langOther: { name: "そのほかの外国語", need: 0, lang: true, pdf: ["外国語他"] },
     lang1: { name: "第1外国語", need: 8, role: "langpart", calc: { max: LANG_KEYS } },
     lang2: { name: "第2外国語", need: second, role: "langpart", calc: { second: LANG_KEYS } },
-    lang: { name: "外国語の合計", need: total, calc: { sum: LANG_KEYS }, ...e }
+    // 第1・第2外国語を満たせば合計も満たすので、合計の欄は出さない
+    lang: { name: "外国語の合計", need: total, calc: { sum: LANG_KEYS }, hidden: true, ...e }
   };
 }
 const LANG_GROUP_ROWS = [...LANG_KEYS, "lang1", "lang2", "lang"];
