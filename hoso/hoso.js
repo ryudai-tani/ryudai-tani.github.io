@@ -140,7 +140,7 @@ function render() {
     items.push(row("必修科目", `${reqAll - c.reqLeftUnits} / ${reqAll}単位`,
       c.reqLeft.length ? { k: "bad", t: `あと${c.reqLeftUnits}単位（${c.reqLeft.map(r => r.name).join("・")}）です。` } : { k: "ok", t: "すべて修得しています。" }));
     const eleRest = c.ele.filter(r => !r.done).map(r => r.name);
-    items.push(row("選択必修", `${Math.min(c.eleDone, ELECTIVE_NEED) * 2} / ${ELECTIVE_NEED * 2}単位`,
+    items.push(row("選択必修科目", `${Math.min(c.eleDone, ELECTIVE_NEED) * 2} / ${ELECTIVE_NEED * 2}単位`,
       c.eleLeft ? { k: "bad", t: `あと${c.eleLeft * 2}単位です（${eleRest.join("・")}${eleRest.length > c.eleLeft ? `から${c.eleLeft}科目` : ""}）。` } : { k: "ok", t: "修得しています。" }));
     const a1 = retake(advice(c.reqG, c.reqNewUnits, G.req, false, `必修科目${c.reqNewUnits}単位`), c.reqCs, c.reqG, c.reqNewUnits, G.req);
     items.push(row("必修科目のGPA", `${c.reqG.u ? fmt(c.reqG.p / c.reqG.u) : "－"} / ${fmt(G.req)}`, a1));
@@ -155,7 +155,7 @@ function render() {
 
   const tr = r => `<tr><td>${esc(r.name)}</td><td class="n num">${r.u}</td><td${r.rows.length ? "" : ' class="miss"'}>${r.rows.length ? esc(r.g) : "未修得"}</td></tr>`;
   const table = `<details><summary>法曹コースの科目の成績</summary><table class="courses"><thead><tr><th>必修科目</th><th>単位</th><th>評価</th></tr></thead><tbody>${c.req.map(tr).join("")}</tbody>`
-    + `<thead><tr><th>選択必修</th><th>単位</th><th>評価</th></tr></thead><tbody>${c.ele.map(tr).join("")}</tbody></table><p>選択必修は、必修科目のGPAに含めません。</p></details>`;
+    + `<thead><tr><th>選択必修科目</th><th>単位</th><th>評価</th></tr></thead><tbody>${c.ele.map(tr).join("")}</tbody></table><p>選択必修科目は、必修科目のGPAに含めません。</p></details>`;
 
   $("result").innerHTML = `<div class="gpas">${gpaCard("全修得単位のGPA", c.all, "all")}${gpaCard("法曹コース必修科目のGPA", c.reqG, "req")}</div>`
     + goals + table;
