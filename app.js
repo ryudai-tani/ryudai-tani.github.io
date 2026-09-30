@@ -1,12 +1,12 @@
 const RULES = window.TANI_RULES;
-const STORE = "tani-check-v3";
+const STORE = "tani-check-v4";
 const pos = x => Math.max(0, x);
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 let saved = {};
 try { saved = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) {}
-let state = { ruleId: saved.ruleId || RULES[0].id, program: saved.program || null, data: saved.data || {} };
+let state = { ruleId: saved.ruleId || RULES[0].id, program: saved.program || null, data: saved.data || {}, open: !!saved.open };
 const RAW = {};
 function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
@@ -14,7 +14,7 @@ const rule = () => RULES.find(r => r.id === state.ruleId) || RULES[0];
 const program = () => { const r = rule(); return r.programs.find(p => p.id === state.program) ? state.program : r.programs[0].id; };
 function values() {
   const r = rule();
-  if (!state.data[r.id]) state.data[r.id] = { v: { ...r.example }, example: true };
+  if (!state.data[r.id]) state.data[r.id] = { v: {} };
   return state.data[r.id];
 }
 function def(k) { const d = rule().rows[k]; return { ...d, ...((d.program || {})[program()] || {}) }; }
@@ -96,28 +96,32 @@ function rowHtml(k, s) {
   return `<div class="row${d.calc ? " calc" : ""}"><div class="name">${esc(d.name)}${d.hint ? `<small>${esc(d.hint)}</small>` : ""}</div>${field}<div class="state">${stateHtml(s)}</div>${moves}${det}</div>`;
 }
 
+const opts = (list, cur, label = x => x) => list.map(x => `<option value="${esc(x)}"${x === cur ? " selected" : ""}>${esc(label(x))}</option>`).join("");
 function renderSelectors() {
   const r = rule();
-  const facs = [...new Set(RULES.map(x => x.faculty))];
-  $("sel-fac").innerHTML = facs.map(f => `<option${f === r.faculty ? " selected" : ""}>${esc(f)}</option>`).join("");
-  const depts = [...new Set(RULES.filter(x => x.faculty === r.faculty).map(x => x.dept))];
-  $("sel-dept").innerHTML = depts.map(d => `<option${d === r.dept ? " selected" : ""}>${esc(d)}</option>`).join("");
-  const years = RULES.filter(x => x.faculty === r.faculty && x.dept === r.dept).map(x => x.year);
-  $("sel-year").innerHTML = years.map(y => `<option value="${y}"${y === r.year ? " selected" : ""}>${y}年度</option>`).join("");
-  const p = program();
-  $("programs").innerHTML = r.programs.map(x => `<button type="button" data-p="${x.id}" aria-pressed="${x.id === p}">${esc(x.name)}</button>`).join("");
-  $("programs").hidden = r.programs.length < 2;
+  const years = [...new Set(RULES.map(x => x.year))].sort((a, b) => b - a);
+  $("sel-year").innerHTML = opts(years, r.year, y => `${y}年度`);
+  const inYear = RULES.filter(x => x.year === r.year);
+  $("sel-fac").innerHTML = opts([...new Set(inYear.map(x => x.faculty))], r.faculty);
+  $("sel-dept").innerHTML = opts(inYear.filter(x => x.faculty === r.faculty).map(x => x.dept), r.dept);
+  $("sel-prog").innerHTML = r.programs.map(p => `<option value="${p.id}"${p.id === program() ? " selected" : ""}>${esc(p.name)}</option>`).join("");
 }
-function pickRule(fac, dept, year) {
-  const c = RULES.filter(x => x.faculty === fac && (!dept || x.dept === dept));
-  const hit = c.find(x => x.year === Number(year)) || c[0];
-  if (hit) { state.ruleId = hit.id; state.program = null; Object.keys(RAW).forEach(k => delete RAW[k]); save(); render(); }
+// 年度・学部・学科を変えたとき、できるだけ今の選択を残して選び直す
+function pickRule(year, fac, dept) {
+  const c = RULES.filter(x => x.year === Number(year));
+  const hit = c.find(x => x.faculty === fac && x.dept === dept) || c.find(x => x.faculty === fac) || c[0];
+  if (!hit) return;
+  const keepProg = rule().programs.some(p => p.id === state.program) && hit.programs.some(p => p.id === state.program);
+  state.ruleId = hit.id; if (!keepProg) state.program = null;
+  Object.keys(RAW).forEach(k => delete RAW[k]); save(); render();
 }
 
 function render() {
   const r = rule(), c = compute(), S = c.S, st = values();
+  $("result").hidden = !state.open;
+  $("manualLink").hidden = state.open;
+  if (!state.open) return;
   renderSelectors();
-  $("exampleNote").hidden = !st.example;
   $("sections").innerHTML = c.secTotals.map(t =>
     `<section><div class="sechead"><h2>${esc(t.sec.name)}</h2><span class="num">${t.sum} / ${t.sec.need}</span></div>` +
     t.sec.groups.map(g => (g.name ? `<p class="group">${esc(g.name)}</p>` : "") + g.rows.map(k => rowHtml(k, S[k])).join("")).join("") +
@@ -203,12 +207,12 @@ async function readPdf(file) {
       if (r) result = r;
     }
     if (result && result.error) {
-      if (result.rule) { state.ruleId = result.rule.id; state.program = result.program || null; save(); render(); }
+      if (result.rule) { state.ruleId = result.rule.id; state.program = result.program || null; state.open = true; save(); render(); }
       setStatus(result.error, false); return;
     }
     if (!result) { setStatus("成績表の「単位修得状況」が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
     state.ruleId = result.rule.id; state.program = result.program;
-    state.data[result.rule.id] = { v: { ...result.rule.example, ...result.v }, example: false };
+    state.data[result.rule.id] = { v: { ...result.v } }; state.open = true;
     Object.keys(RAW).forEach(k => delete RAW[k]);
     save(); render();
     setStatus(`成績表を読み込みました（${result.rule.faculty} ${result.rule.dept}・${result.rule.year}年度入学）。振替を計算した結果を表示しています。`, true);
@@ -222,17 +226,16 @@ $("sections").addEventListener("input", e => {
   const el = e.target;
   if (!el.id || !el.id.startsWith("in-")) return;
   const k = el.id.slice(3), st = values();
-  // 例の数字のまま入力を始めたら、ほかの例の数字は0にする
-  if (st.example) inputKeys().forEach(x => { if (x !== k) { st.v[x] = 0; delete RAW[x]; } });
   st.v[k] = Math.max(0, parseInt(el.value, 10) || 0);
-  st.example = false; RAW[k] = el.value; save();
+  RAW[k] = el.value; save();
   const id = el.id; render();
   const again = $(id); if (again) again.focus();
 });
-$("programs").addEventListener("click", e => { const b = e.target.closest("button[data-p]"); if (b) { state.program = b.dataset.p; save(); render(); } });
-$("sel-fac").addEventListener("change", e => pickRule(e.target.value));
-$("sel-dept").addEventListener("change", e => pickRule(rule().faculty, e.target.value));
-$("sel-year").addEventListener("change", e => pickRule(rule().faculty, rule().dept, e.target.value));
+$("sel-prog").addEventListener("change", e => { state.program = e.target.value; save(); render(); });
+$("sel-year").addEventListener("change", e => pickRule(e.target.value, rule().faculty, rule().dept));
+$("sel-fac").addEventListener("change", e => pickRule(rule().year, e.target.value, rule().dept));
+$("sel-dept").addEventListener("change", e => pickRule(rule().year, rule().faculty, e.target.value));
+$("openManual").addEventListener("click", () => { state.open = true; save(); render(); });
 const fileEl = $("file"), drop = $("drop");
 fileEl.addEventListener("change", () => { readPdf(fileEl.files[0]); fileEl.value = ""; });
 drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });

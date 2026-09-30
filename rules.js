@@ -128,3 +128,170 @@ window.TANI_RULES = [
   kokuhouRule(2024, L_R6, { sotsuken: "卒業研究", shahoNote: true }),
   kokuhouRule(2023, L_R5, { sotsuken: "卒業研究", shahoNote: true })
 ];
+
+/* ---------- 人間社会学科・琉球アジア文化学科 ---------- */
+// 3つのプログラムで数字だけ違う科目区分は、[プログラム1, 2, 3] の順に書く
+function perProgram(programs, key, values) {
+  const o = {};
+  programs.forEach((p, i) => { o[p.id] = { [key]: values[i] }; });
+  return o;
+}
+function mergeProgram(...maps) {
+  const o = {};
+  for (const m of maps) for (const [k, v] of Object.entries(m)) o[k] = { ...(o[k] || {}), ...v };
+  return o;
+}
+
+function kyotsuOldSimple(L, opt) {
+  // 2024年度入学まで。その他の領域は、健康運動系と外国語を除く合計
+  const parts = ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho"];
+  return {
+    health: { name: "健康運動系科目", need: 2 },
+    jinbun: { name: "人文系科目", need: 2, role: "part" },
+    shakai: { name: "社会系科目", need: 2, role: "part" },
+    shizen: { name: "自然系科目", need: 2, role: "part" },
+    sogo: { name: "総合科目", need: 0 },
+    ryudai: { name: "琉大特色・地域創生科目", need: 0 },
+    career: { name: "キャリア関係科目", need: opt.career || 0, role: opt.career ? "part" : undefined },
+    joho: { name: "情報関係科目", hint: "情報科学演習", need: 2, role: "part" },
+    pool: { name: "その他の領域", hint: "外国語と健康運動系を除く共通教育の合計", need: opt.pool, calc: { sum: parts } },
+    peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
+    lang: { name: "外国語", hint: opt.langHint, need: opt.lang }
+  };
+}
+const KYOTSU_OLD_SIMPLE_GROUPS = [
+  { name: "", rows: ["health"] },
+  { name: "教養領域・総合領域・基幹領域（情報関係）", rows: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho", "pool", "peaceGroup"] },
+  { name: "基幹領域（外国語）", rows: ["lang"] }
+];
+
+function ningenRule(year, L) {
+  const oldK = year <= 2024;
+  const programs = [
+    { id: "phil", name: year <= 2023 ? "哲学・教育学プログラム" : "哲学プログラム", match: "哲学" },
+    { id: "psy", name: "心理学プログラム", match: "心理学" },
+    { id: "soc", name: "社会学プログラム", match: "社会学" }
+  ];
+  const pp = (key, v) => perProgram(programs, key, v);
+  const prof = {
+    kiban: { name: "学部共通基盤科目（必修）", program: pp("need", [6, 4, 6]) },
+    peace: { name: "学部共通科目（選択科目）", hint: "平和共生・沖縄理解基盤科目", need: 4, over: "free" },
+    gakkaKiban: { name: "学科基盤科目", need: 6, over: "progDev" },
+    gakkaDev: { name: "学科発展科目", need: 4, over: "progDev" },
+    coreKiban: { name: "プログラムコア基盤科目", program: pp("need", [4, 12, 8]) },
+    coreDev: { name: "プログラムコア発展科目", over: "progDev", program: pp("need", [8, 12, 8]) },
+    progDev: { name: "プログラム発展科目", over: "free", program: pp("need", [30, 22, 26]) },
+    free: { name: "専門自由科目", hint: "他プログラム・他学科・他学部の専門科目。振替の単位は自動で足します", sink: true, program: pp("need", [26, 24, 26]) }
+  };
+  let kyotsu, groups, excess;
+  if (oldK) {
+    kyotsu = kyotsuOldSimple(L, { pool: 22, career: 2, lang: 12, langHint: "第1外国語8単位・第2外国語4単位" });
+    groups = KYOTSU_OLD_SIMPLE_GROUPS;
+    excess = { cap: 10, rows: ["health", "pool", "lang"] };
+  } else {
+    kyotsu = {
+      health: { name: "健康運動系科目", need: 2 },
+      data: { name: "データリテラシー科目", hint: "情報科学演習", need: 2, role: "part" },
+      career: { name: "キャリア・ダイバーシティ科目", hint: "キャリア形成入門", need: 2, role: "part" },
+      jinsha: { name: "人文社会科学系科目", need: 0 },
+      shizen: { name: "自然科学系科目", need: 0 },
+      ryudai: { name: "琉大特色・地域創生科目", need: 0 },
+      global: { name: "グローバル科目", need: 0 },
+      three: { name: "人文社会科学系・自然科学系・琉大特色の合計", need: 8, role: "part", calc: { sum: ["jinsha", "shizen", "ryudai"] } },
+      pool: { name: "その他の領域", hint: "外国語と健康運動系を除く共通教育の合計", need: 22, calc: { sum: ["data", "career", "jinsha", "shizen", "ryudai", "global"] } },
+      peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
+      lang: { name: "外国語", hint: "第1外国語8単位・第2外国語4単位", need: 12 }
+    };
+    groups = [
+      { name: "", rows: ["health"] },
+      { name: "その他の領域", rows: ["data", "career", "jinsha", "shizen", "ryudai", "global", "three", "pool", "peaceGroup"] },
+      { name: "外国語", rows: ["lang"] }
+    ];
+    excess = { cap: 6, rows: ["health", "pool", "lang"] };
+  }
+  return {
+    id: "jinsha-ningen-" + year, year, faculty: "人文社会学部", dept: "人間社会学科",
+    match: { faculty: "人文社会", dept: "人間社会" }, programs, total: 124, pdfSupported: false,
+    source: `${year}年度入学者用の学生便覧（人文社会学部規程 別表・人間社会学科）`,
+    sections: [
+      { name: "専門教育科目", need: 88, top: true, groups: [
+        { name: "学部共通専門科目", rows: ["kiban", "peace"] },
+        { name: "学科共通専門科目", rows: ["gakkaKiban", "gakkaDev"] },
+        { name: "プログラム専門科目", rows: ["coreKiban", "coreDev", "progDev", "free"] }
+      ]},
+      { name: "共通教育科目", need: 36, groups }
+    ],
+    rows: { ...prof, ...kyotsu },
+    commonExcess: { cap: excess.cap, to: "free", program: Object.fromEntries(programs.map(p => [p.id, excess.rows])) },
+    example: { kiban: 6, peace: 4, gakkaKiban: 6, gakkaDev: 6, coreKiban: 4, coreDev: 8, progDev: 12, free: 4, health: 2, lang: 12, peaceGroup: 6,
+      ...(oldK ? { jinbun: 4, shakai: 4, shizen: 2, sogo: 2, ryudai: 2, career: 2, joho: 2 } : { data: 2, career: 2, jinsha: 8, shizen: 2, ryudai: 4, global: 0 }) }
+  };
+}
+
+function ryuasiaRule(year, L) {
+  const oldK = year <= 2024;
+  const programs = [
+    { id: "hist", name: "歴史・民俗学プログラム", match: "歴史" },
+    { id: "lit", name: "文学プログラム", match: "文学" },
+    { id: "ling", name: "言語学プログラム", match: "言語学" }
+  ];
+  const prof = {
+    kiban: { name: "学部共通基盤科目（必修）", need: 6 },
+    peace: { name: "平和共生・沖縄理解基盤科目", need: 4, over: "free" },
+    gakkaKiban: { name: "学科基盤科目", hint: "他プログラムのプログラムコア基盤科目", need: 4, over: "free" },
+    gakkaDev: { name: "学科発展科目", hint: "他プログラムのプログラム発展科目", need: 4, over: "free" },
+    coreKiban: { name: "プログラムコア基盤科目", need: 8, over: "free" },
+    coreDev: { name: "プログラムコア発展科目", hint: "卒業論文（必修）4単位を含む", need: 12, over: "free" },
+    progDev: { name: "プログラム発展科目", need: 28, over: "free" },
+    free: { name: "専門自由科目", hint: "他学科・他学部の専門科目。振替の単位は自動で足します", sink: true, need: oldK ? 22 : 24 }
+  };
+  let kyotsu, groups, excessRows, commonNeed;
+  if (oldK) {
+    kyotsu = kyotsuOldSimple(L, { pool: 18, lang: 16, langHint: "第1外国語8単位・第2外国語8単位" });
+    groups = KYOTSU_OLD_SIMPLE_GROUPS;
+    excessRows = ["health", "pool", "lang"];
+    commonNeed = 36;
+  } else {
+    kyotsu = {
+      health: { name: "健康運動系科目", need: 2 },
+      data: { name: "データリテラシー科目", hint: "情報科学演習", need: 2 },
+      career: { name: "キャリア・ダイバーシティ科目", hint: "キャリア形成入門", need: 2 },
+      jinsha: { name: "人文社会科学系科目", need: 2, role: "part" },
+      shizen: { name: "自然科学系科目", need: 2, role: "part" },
+      ryudai: { name: "琉大特色・地域創生科目", need: 2, role: "part" },
+      global: { name: "グローバル科目", need: 0 },
+      pool: { name: "その他の領域", hint: "基盤領域（健康運動系・データリテラシー・キャリア・ダイバーシティ・外国語）を除く共通教育の合計", need: 16, calc: { sum: ["jinsha", "shizen", "ryudai", "global"] } },
+      peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
+      lang: { name: "外国語", hint: "第1外国語8単位・第2外国語4単位", need: 12 }
+    };
+    groups = [
+      { name: "基盤領域", rows: ["health", "data", "career"] },
+      { name: "その他の領域", rows: ["jinsha", "shizen", "ryudai", "global", "pool", "peaceGroup"] },
+      { name: "外国語", rows: ["lang"] }
+    ];
+    excessRows = ["health", "data", "career", "pool", "lang"];
+    commonNeed = 34;
+  }
+  return {
+    id: "jinsha-ryuasia-" + year, year, faculty: "人文社会学部", dept: "琉球アジア文化学科",
+    match: { faculty: "人文社会", dept: "琉球アジア" }, programs, total: 124, pdfSupported: false,
+    source: `${year}年度入学者用の学生便覧（人文社会学部規程 別表・琉球アジア文化学科）`,
+    sections: [
+      { name: "専門教育科目", need: oldK ? 88 : 90, top: true, groups: [
+        { name: "学部共通専門科目", rows: ["kiban", "peace"] },
+        { name: "学科共通専門科目", rows: ["gakkaKiban", "gakkaDev"] },
+        { name: "プログラム専門科目", rows: ["coreKiban", "coreDev", "progDev", "free"] }
+      ]},
+      { name: "共通教育科目", need: commonNeed, groups }
+    ],
+    rows: { ...prof, ...kyotsu },
+    commonExcess: { cap: 10, to: "free", program: Object.fromEntries(programs.map(p => [p.id, excessRows])) },
+    example: { kiban: 6, peace: 4, gakkaKiban: 4, gakkaDev: 4, coreKiban: 8, coreDev: 4, progDev: 12, free: 4, health: 2, peaceGroup: 6,
+      ...(oldK ? { jinbun: 4, shakai: 2, shizen: 2, sogo: 2, ryudai: 4, career: 0, joho: 2, lang: 16 } : { data: 2, career: 2, jinsha: 6, shizen: 2, ryudai: 4, global: 0, lang: 12 }) }
+  };
+}
+
+window.TANI_RULES.push(
+  ...[2026, 2025, 2024, 2023].map(y => ningenRule(y, { R5: L_R5, R6: L_R6, R7: L_R7, R8: L_R8 }[{ 2023: "R5", 2024: "R6", 2025: "R7", 2026: "R8" }[y]])),
+  ...[2026, 2025, 2024, 2023].map(y => ryuasiaRule(y, { R5: L_R5, R6: L_R6, R7: L_R7, R8: L_R8 }[{ 2023: "R5", 2024: "R6", 2025: "R7", 2026: "R8" }[y]]))
+);

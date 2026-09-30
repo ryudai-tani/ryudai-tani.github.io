@@ -90,7 +90,10 @@ details p{margin:4px 0}
 .note{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;font-size:.88rem;color:var(--muted)}
 .note p{margin:0 0 6px}
 .note p:last-child{margin:0}
-.example{font-size:.85rem;color:var(--move);background:var(--move-soft);padding:6px 12px;border-radius:8px}
+.manual-link{margin:0}
+.linkbtn{border:0;background:none;padding:0;font:inherit;font-size:.88rem;color:var(--accent);text-decoration:underline;cursor:pointer;text-align:left}
+#result{display:flex;flex-direction:column;gap:22px}
+#result[hidden]{display:none}
 @media (max-width:560px){
   .row{grid-template-columns:1fr 84px}
   .row .state{grid-column:1/-1}
@@ -132,20 +135,18 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   </section>
   <div class="status" id="status" hidden></div>
 
-  <div class="pickers">
-    <label>学部<select id="sel-fac"></select></label>
-    <label>学科<select id="sel-dept"></select></label>
-    <label>入学年度<select id="sel-year"></select></label>
+  <p class="manual-link" id="manualLink"><button type="button" class="linkbtn" id="openManual">成績表のPDFを読み込めない場合は、数字を入力して計算できます</button></p>
+
+  <div id="result" hidden>
+    <div class="pickers">
+      <label>入学年度<select id="sel-year"></select></label>
+      <label>学部<select id="sel-fac"></select></label>
+      <label>学科<select id="sel-dept"></select></label>
+      <label>プログラム<select id="sel-prog"></select></label>
+    </div>
+    <div class="summary" id="summary"></div>
+    <div id="sections"></div>
   </div>
-  <div class="controls">
-    <div class="seg" role="group" aria-label="プログラム" id="programs"></div>
-  </div>
-
-  <div class="example" id="exampleNote">入っている数字は例です。成績表を読み込むか、成績表の「単位修得状況」にある修得単位を入力してください。入力を始めると、ほかの例の数字は0になります。</div>
-
-  <div class="summary" id="summary"></div>
-
-  <div id="sections"></div>
 
   <div class="note">
     <p id="source"></p>
