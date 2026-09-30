@@ -58,7 +58,7 @@ function compute() {
   }
   for (const k of keys) {
     const s = S[k];
-    if (s.recv.length && s.d.sink) s.moves.push(`振替で受け取った単位：${s.recv.map(x => `${x.from} ${x.n}`).join("・")}`);
+    if (s.recv.length && s.d.sink) s.moves.push(`振替により受け取った単位：${s.recv.map(x => `${x.from} ${x.n}`).join("・")}`);
     else if (s.recv.length) s.moves.unshift(...s.recv.map(x => `${x.from}から${x.n}単位を受け取りました`));
     s.counted = s.d.sink ? s.eff : Math.min(s.eff, s.need);
   }
