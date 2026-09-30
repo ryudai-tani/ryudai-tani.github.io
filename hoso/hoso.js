@@ -122,6 +122,10 @@ function render() {
   $("loadedBar").hidden = !has;
   $("result").hidden = !has;
   if (!has) return;
+  if (state.aff && !state.aff.includes("法曹")) {
+    $("result").innerHTML = `<p class="status bad">読み込んだ成績表の所属が、特修法曹コースではありません。このページは、特修法曹コースの人のためのページです。</p>`;
+    return;
+  }
   const c = compute();
   const gpaCard = (label, g, key) => `<div class="gpa"><span class="label">${label}</span><span class="big num">${g.u ? fmt(g.p / g.u) : "－"}</span>`
     + `<span class="req">早期卒業 ${fmt(GOALS[0][key])}以上・修了 ${fmt(GOALS[1][key])}以上</span></div>`;
@@ -156,34 +160,7 @@ function render() {
 }
 
 /* ---------- 成績表PDFの読み込み ---------- */
-function parsePage(items) {
-  const heads = items.filter(i => i.s === "科目番号").sort((a, b) => a.x - b.x);
-  const courses = [];
-  const near = (a, b, d) => Math.abs(a - b) <= d;
-  for (const h of heads) {
-    const unitH = items.filter(i => i.s === "単位" && near(i.y, h.y, 3) && i.x > h.x).sort((a, b) => a.x - b.x)[0];
-    const gradeH = items.filter(i => i.s === "評価" && near(i.y, h.y, 3) && i.x > h.x).sort((a, b) => a.x - b.x)[0];
-    if (!unitH || !gradeH) continue;
-    const termH = items.filter(i => i.s === "修得年度" && near(i.y, h.y, 3) && i.x > gradeH.x).sort((a, b) => a.x - b.x)[0];
-    for (const g of items) {
-      const letter = g.s.normalize("NFKC");
-      if (!/^[ABCDFPR]$/.test(letter) || g.y >= h.y || !near(g.x, gradeH.x, 10)) continue;
-      const u = items.find(i => /^\d+$/.test(i.s) && near(i.y, g.y, 3) && near(i.x, unitH.x, 14));
-      const name = items.filter(i => near(i.y, g.y, 3) && i.x > h.x + 20 && i.x < unitH.x - 8).sort((a, b) => a.x - b.x).map(i => i.s).join("");
-      const t = termH && items.find(i => /^20\d\d/.test(i.s) && near(i.y, g.y, 3) && near(i.x, termH.x, 14));
-      if (u && name) courses.push({ n: name, u: parseInt(u.s, 10), g: letter, t: t ? t.s : "" });
-    }
-  }
-  // 「単位修得状況」の【合計】の修得単位
-  let total = null;
-  const L = items.find(i => i.s === "【合計】");
-  if (L) {
-    const col = items.filter(i => i.s === "修得単位" && i.x > L.x).map(i => i.x).sort((a, b) => a - b)[0];
-    const hit = col !== undefined && items.find(n => /^\d+$/.test(n.s) && near(n.y, L.y, 4) && n.x >= col - 6 && n.x <= col + 45);
-    if (hit) total = parseInt(hit.s, 10);
-  }
-  return { courses, total };
-}
+// parseCourses（科目名・単位・評価の読み取り）は ../rules.js にある（元のページと共通）
 
 // 元のページで、成績表をもう一度読み込まなくても使えるように保存する（元のページの readPdf と同じ形）
 function saveForMain(r) {
@@ -216,18 +193,19 @@ async function readPdf(file) {
   try {
     await loadPdfJs();
     const doc = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
-    const courses = []; let total = null, main = null;
+    const courses = []; let total = null, main = null, aff = null;
     for (let p = 1; p <= doc.numPages; p++) {
       const tc = await (await doc.getPage(p)).getTextContent();
       const items = tc.items.filter(i => i.str && i.str.trim()).map(i => ({ s: i.str.trim(), x: i.transform[4], y: i.transform[5] }));
-      const r = parsePage(items);
+      const r = window.parseCourses(items);
       courses.push(...r.courses);
+      if (r.aff) aff = r.aff;
       if (r.total != null) total = r.total;
       // 元のページ（卒業まであと何単位）の科目区分ごとの単位も読む
       if (window.parseRecord && !(main && main.rule)) { try { main = window.parseRecord(items) || main; } catch (e) {} }
     }
     if (!courses.length) { setStatus("成績表の科目が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
-    state = { courses, total, loadedAt: Date.now() };
+    state = { courses, total, aff, loadedAt: Date.now() };
     saveForMain(main);
     save(); render();
     $("status").hidden = true;

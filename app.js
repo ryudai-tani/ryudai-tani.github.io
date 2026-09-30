@@ -199,12 +199,29 @@ function loadPdfJs() {
 }
 function setStatus(msg, ok) { const el = $("status"); el.hidden = false; el.textContent = msg; el.className = "status " + (ok ? "ok" : "bad"); }
 
+// 特修法曹コースの人は、法曹コースのページで読み込み直さなくても使えるように、科目ごとの評価も保存する（このスマホ・パソコンの中だけ）
+async function saveCoursesForHoso(doc) {
+  try {
+    if (!window.parseCourses) return;
+    const courses = []; let total = null, aff = null;
+    for (let p = 1; p <= doc.numPages; p++) {
+      const tc = await (await doc.getPage(p)).getTextContent();
+      const r = window.parseCourses(tc.items.filter(i => i.str && i.str.trim()).map(i => ({ s: i.str.trim(), x: i.transform[4], y: i.transform[5] })));
+      courses.push(...r.courses);
+      if (r.total != null) total = r.total;
+      if (r.aff) aff = r.aff;
+    }
+    if (!aff || !aff.includes("法曹") || !courses.length) return;
+    localStorage.setItem("hoso-check-v1", JSON.stringify({ courses, total, aff, loadedAt: Date.now() }));
+  } catch (e) {}
+}
 async function readPdf(file) {
   if (!file) return;
   setStatus("読み込んでいます…", true);
   try {
     await loadPdfJs();
     const doc = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    await saveCoursesForHoso(doc);
     let result = null;
     for (let p = doc.numPages; p >= 1 && !(result && (result.v || result.rule)); p--) {
       const tc = await (await doc.getPage(p)).getTextContent();
