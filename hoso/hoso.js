@@ -113,25 +113,23 @@ function render() {
     + `<span class="req">早期卒業 ${fmt(GOALS[0][key])}以上・修了 ${fmt(GOALS[1][key])}以上</span></div>`;
   let opts = "";
   for (let i = 0; i <= Math.max(60, c.plan); i++) opts += `<option value="${i}"${i === c.plan ? " selected" : ""}>${i}</option>`;
-  const planNote = c.plan < TOTAL - c.earned ? `<span>あと${TOTAL - c.earned}単位が必要です。</span>` : "";
 
   const row = (name, val, how) => `<div class="grow"><span class="name">${name}</span><span class="val num">${val}</span><p class="how ${how.k}">${how.t}</p>`
     + (how.more ? how.more.map(t => `<p class="how move">${t}</p>`).join("") : "") + `</div>`;
   const goals = GOALS.map(G => {
     const items = [];
-    const unitsOk = c.earned >= TOTAL;
-    items.push(row("修得単位", `${c.earned} / ${TOTAL}`, unitsOk ? { k: "ok", t: "達成しています。" } : { k: "bad", t: `あと${TOTAL - c.earned}単位です。` }));
-    items.push(row("必修科目", `${REQUIRED.length - c.reqLeft.length} / ${REQUIRED.length}科目`,
-      c.reqLeft.length ? { k: "bad", t: `あと${c.reqLeft.length}科目（${c.reqLeft.map(r => r.name).join("・")}）です。` } : { k: "ok", t: "すべて修得しています。" }));
+    const reqAll = REQUIRED.reduce((a, r) => a + r[1], 0);
+    items.push(row("必修科目", `${reqAll - c.reqLeftUnits} / ${reqAll}単位`,
+      c.reqLeft.length ? { k: "bad", t: `あと${c.reqLeftUnits}単位（${c.reqLeft.map(r => r.name).join("・")}）です。` } : { k: "ok", t: "すべて修得しています。" }));
     const eleRest = c.ele.filter(r => !r.done).map(r => r.name);
-    items.push(row("選択必修", `${c.eleDone} / ${ELECTIVE_NEED}科目`,
-      c.eleLeft ? { k: "bad", t: `あと${c.eleLeft}科目です（${eleRest.join("・")}${eleRest.length > c.eleLeft ? "から選択" : ""}）。` } : { k: "ok", t: "修得しています。" }));
+    items.push(row("選択必修", `${Math.min(c.eleDone, ELECTIVE_NEED) * 2} / ${ELECTIVE_NEED * 2}単位`,
+      c.eleLeft ? { k: "bad", t: `あと${c.eleLeft * 2}単位です（${eleRest.join("・")}${eleRest.length > c.eleLeft ? `から${c.eleLeft}科目` : ""}）。` } : { k: "ok", t: "修得しています。" }));
     const a1 = retake(advice(c.reqG, c.reqNewUnits, G.req, false), c.reqCs, c.reqG, c.reqNewUnits, G.req);
     items.push(row("必修科目のGPA", `${c.reqG.u ? fmt(c.reqG.p / c.reqG.u) : "－"} / ${fmt(G.req)}`, a1));
     const a2 = retake(advice(c.all, c.plan, G.all, true), c.cs, c.all, c.plan, G.all);
     items.push(row("全修得単位のGPA", `${c.all.u ? fmt(c.all.p / c.all.u) : "－"} / ${fmt(G.all)}`, a2));
     const gpaBad = a1.k === "bad" || a2.k === "bad";
-    const allOk = unitsOk && !c.reqLeft.length && !c.eleLeft && a1.k === "ok" && a2.k === "ok";
+    const allOk = !c.reqLeft.length && !c.eleLeft && a1.k === "ok" && a2.k === "ok";
     const pill = allOk ? `<span class="pill ok">条件を満たしています</span>` : gpaBad ? `<span class="pill bad">GPAが届きません</span>` : `<span class="pill move">残りの成績で届きます</span>`;
     return `<section class="goal"><div class="sechead"><h2>${G.name}</h2><div class="sechead-r">${pill}</div></div>${items.join("")}`
       + (G.note ? `<p class="goalnote">${G.note}</p>` : "") + `</section>`;
@@ -142,7 +140,7 @@ function render() {
     + `<thead><tr><th>選択必修</th><th>単位</th><th>評価</th></tr></thead><tbody>${c.ele.map(tr).join("")}</tbody></table></details>`;
 
   $("result").innerHTML = `<div class="gpas">${gpaCard("全修得単位のGPA", c.all, "all")}${gpaCard("法曹コース必修科目のGPA", c.reqG, "req")}</div>`
-    + `<label class="planbox">卒業までに、これから修得する単位<select id="plan">${opts}</select>${planNote}</label>`
+    + `<label class="planbox">卒業までに、これから修得する単位<select id="plan">${opts}</select></label>`
     + goals + table;
   $("plan").addEventListener("change", e => { state.plan = parseInt(e.target.value, 10) || 0; save(); render(); });
 }
