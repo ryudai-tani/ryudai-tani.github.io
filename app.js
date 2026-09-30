@@ -147,9 +147,8 @@ function pickRule(year, fac, dept) {
 }
 
 function render() {
-  // 法曹コースのページを案内する（数字を入力しているときは、国際法政学科・法学プログラムのとき）
-  // 成績表を読み込んだときは、所属が特修法曹コースの人だけ
-  $("hosoLink").hidden = state.fromPdf ? !state.hoso : !(rule().dept === "国際法政学科" && program() === "law");
+  // 法曹コースのページを案内する（成績表の所属が特修法曹コースの人だけ）
+  $("hosoLink").hidden = !state.hoso;
   const r = rule(), c = compute(), S = c.S, st = values();
   $("result").hidden = !state.open;
   $("manualLink").hidden = state.open;
