@@ -54,7 +54,7 @@ function compute() {
     const last = real.length ? real[real.length - 1].g : null;
     return !real.some(c => PASS.includes(c.g)) || last === "D" || last === "F";
   };
-  const preds = Object.entries(state.pred || {}).filter(([n, g]) => g && unitOf[n] && canPred(n)).map(([n, g]) => ({ n, u: unitOf[n], g, t: "9999", pred: true }));
+  const preds = Object.entries(state.pred || {}).filter(([n, g]) => g && unitOf[n] && canPred(n)).map(([n, g]) => ({ n, u: unitOf[n], g, t: "2099後期", pred: true }));
   const withPred = [...(state.courses || []), ...preds];
   const cs = effective(withPred);
   const status = list => list.map(([name, u]) => {
