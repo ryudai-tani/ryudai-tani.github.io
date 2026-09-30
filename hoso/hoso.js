@@ -177,7 +177,7 @@ function render() {
     + `<table class="courses">${head("必修科目", "評価", "見込み")}<tbody>${c.req.map(tr).join("")}</tbody></table>`
     // 表を見ているあいだ、画面の下にGPAを出す（上のGPAまで遠いため）
     + `<div class="floatgpa"><span>${c.preds.length ? "見込みを入れたGPA" : "いまのGPA"}</span>`
-    + [["必修科目", c.reqG, "req"], ["全修得単位", c.all, "all"]].map(([label, g, key]) => `<span class="fg">${label} <b class="num">${g.u ? fmt(g.p / g.u) : "－"}</b>`
+    + [["全修得単位", c.all, "all"], ["必修科目", c.reqG, "req"]].map(([label, g, key]) => `<span class="fg">${label} <b class="num">${g.u ? fmt(g.p / g.u) : "－"}</b>`
       + `<small>${GOALS.map(G => `${G.short} ${fmt(G[key])}`).join("・")}</small></span>`).join("") + `</div></section>`;
   const predNote = c.preds.length ? `<p class="plan-note">見込みの評価を入れて計算しています。 <button type="button" class="linkbtn" id="clearPred">見込みを消す</button></p>` : "";
 
