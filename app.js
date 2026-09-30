@@ -93,7 +93,7 @@ function stateHtml(s) {
   const pill = !done ? `<span class="pill bad">あと <span class="num">${s.need - s.eff}</span> 単位</span>`
     : `<span class="pill ok">達成</span>`;
   const min = s.d.role === "part" || s.d.role === "overlay";
-  return `${pill}<div class="bar"><i class="${done ? "ok" : ""}" style="width:${pct}%"></i></div><span class="req num">${s.d.sink && s.recv.length ? `振替の後 ${s.eff}` : s.have} / ${s.need}${min || s.d.calc ? " 以上" : ""}</span>`;
+  return `${pill}<div class="bar"><i class="${done ? "ok" : ""}" style="width:${pct}%"></i></div><span class="req num">${s.d.sink && s.recv.length ? `振替後 ${s.eff}` : s.have} / ${s.need}${min || s.d.calc ? " 以上" : ""}</span>`;
 }
 function rowHtml(k, s) {
   const d = s.d, st = values();
