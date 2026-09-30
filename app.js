@@ -222,6 +222,8 @@ $("sections").addEventListener("input", e => {
   const el = e.target;
   if (!el.id || !el.id.startsWith("in-")) return;
   const k = el.id.slice(3), st = values();
+  // 例の数字のまま入力を始めたら、ほかの例の数字は0にする
+  if (st.example) inputKeys().forEach(x => { if (x !== k) { st.v[x] = 0; delete RAW[x]; } });
   st.v[k] = Math.max(0, parseInt(el.value, 10) || 0);
   st.example = false; RAW[k] = el.value; save();
   const id = el.id; render();
@@ -231,7 +233,6 @@ $("programs").addEventListener("click", e => { const b = e.target.closest("butto
 $("sel-fac").addEventListener("change", e => pickRule(e.target.value));
 $("sel-dept").addEventListener("change", e => pickRule(rule().faculty, e.target.value));
 $("sel-year").addEventListener("change", e => pickRule(rule().faculty, rule().dept, e.target.value));
-$("clear").addEventListener("click", () => { const st = values(); inputKeys().forEach(k => { st.v[k] = 0; delete RAW[k]; }); st.example = false; save(); render(); });
 const fileEl = $("file"), drop = $("drop");
 fileEl.addEventListener("change", () => { readPdf(fileEl.files[0]); fileEl.value = ""; });
 drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
