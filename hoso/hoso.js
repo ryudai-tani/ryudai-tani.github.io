@@ -79,7 +79,7 @@ function advice0(g, R, target, canAdd, what) {
     return { k: "bad", t: "基準に届いていません。" + (canAdd ? addMore(g, R, target) : "") };
   }
   // 必修科目はFでは修得できないので、「成績にかかわらず」とは書かない
-  if (N <= R + 1e-9) return { k: N <= 1e-9 ? "ok" : "move", t: `残りの${what}を修得すれば（D以上）、届きます。` };
+  if (N <= R + 1e-9) return { k: N <= 1e-9 ? "ok" : "move", pass: true, t: `残りの${what}を修得すれば（D以上）、届きます。` };
   if (N > 4 * R + 1e-9) return { k: "bad", t: `残りの${what}をすべてAにしても${fmt((g.p + 4 * R) / (g.u + R))}で、届きません。` + (canAdd ? addMore(g, R, target) : "") };
   const b = Math.ceil(N / R - 1e-9) - 1; // 1〜3
   const k = Math.ceil(N - b * R - 1e-9);
@@ -148,7 +148,10 @@ function render() {
     items.push(row("全修得単位のGPA", `${c.all.u ? fmt(c.all.p / c.all.u) : "－"} / ${fmt(G.all)}`, a2));
     const gpaBad = a1.k === "bad" || a2.k === "bad";
     const allOk = !c.reqLeft.length && !c.eleLeft && a1.k === "ok" && a2.k === "ok";
-    const pill = allOk ? `<span class="pill ok">条件を満たしています</span>` : gpaBad ? `<span class="pill bad">GPAが届きません</span>` : `<span class="pill move">残りの成績で届きます</span>`;
+    // 残りの科目を修得すれば（D以上）GPAも届くか、AやBなどの成績が必要か
+    const easy = [a1, a2].every(a => a.k === "ok" || a.pass);
+    const pill = allOk ? `<span class="pill ok">条件を満たしています</span>` : gpaBad ? `<span class="pill bad">GPAが届きません</span>`
+      : `<span class="pill move">${easy ? "残りの科目を修得すれば届きます" : "残りの成績しだいで届きます"}</span>`;
     return `<section class="goal"><div class="sechead"><h2>${G.name}</h2><div class="sechead-r">${pill}</div></div>${items.join("")}`
       + (G.note ? `<p class="goalnote">${G.note}</p>` : "") + `</section>`;
   }).join("");
