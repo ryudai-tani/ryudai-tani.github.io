@@ -63,7 +63,7 @@ function kyotsuOld(L) {
     pool: { name: "その他の領域",
       program: {
         law: { name: "共通教育の合計（外国語・健康運動系を除く）", need: 20, calc: { sum: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho"] } },
-        pol: { name: "共通教育の合計（健康運動系を除く）", need: 32, hint: "外国語を含みます", calc: { sum: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho", "lang"] } } } },
+        pol: { name: "共通教育の合計（健康運動系を除く）", need: 32, calc: { sum: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho", "lang"] } } } },
     peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", pdf: ["(平和共生沖縄理解計)"], list: L.grp },
     lang: { name: "外国語", hint: "（第1外国語8単位・第2外国語4単位）", need: 12, pdf: ["（外国語計）"],
       program: { pol: { role: "part" } } }
@@ -89,7 +89,7 @@ function kyotsuNew(L) {
     pool: { name: "その他の領域",
       program: {
         law: { name: "共通教育の合計（外国語・健康運動系を除く）", need: 20, calc: { sum: ["career", "data", "jinsha", "shizen", "ryudai", "global"] } },
-        pol: { name: "共通教育の合計（健康運動系・キャリア・ダイバーシティ科目を除く）", need: 30, hint: "外国語を含みます", calc: { sum: ["data", "jinsha", "shizen", "ryudai", "global", "lang"] } } } },
+        pol: { name: "共通教育の合計（健康運動系・キャリア・ダイバーシティ科目を除く）", need: 30, calc: { sum: ["data", "jinsha", "shizen", "ryudai", "global", "lang"] } } } },
     peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
     lang: { name: "外国語", hint: "（第1外国語8単位・第2外国語4単位）", need: 12, program: { pol: { role: "part" } } }
   };
@@ -240,8 +240,8 @@ function ryuasiaRule(year, L) {
   const prof = {
     kiban: { name: "学部共通基盤科目（必修）", need: 6 },
     peace: { name: "平和共生・沖縄理解基盤科目", need: 4, over: "free" },
-    gakkaKiban: { name: "学科基盤科目", hint: "他プログラムのプログラムコア基盤科目", need: 4, over: "free" },
-    gakkaDev: { name: "学科発展科目", hint: "他プログラムのプログラム発展科目", need: 4, over: "free" },
+    gakkaKiban: { name: "学科基盤科目", need: 4, over: "free" },
+    gakkaDev: { name: "学科発展科目", need: 4, over: "free" },
     coreKiban: { name: "プログラムコア基盤科目", need: 8, over: "free" },
     coreDev: { name: "プログラムコア発展科目", need: 12, over: "free" },
     progDev: { name: "プログラム発展科目", need: 28, over: "free" },
