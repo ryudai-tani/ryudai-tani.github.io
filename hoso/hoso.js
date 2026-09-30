@@ -29,29 +29,43 @@ function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } ca
 // GPAは切り捨てて小数2桁で表示する（基準に届いていないのに届いたように見せないため）
 const fmt = x => (Math.floor(x * 100 + 1e-9) / 100).toFixed(2);
 const sumGpa = list => list.reduce((a, c) => c.g in GP ? { p: a.p + GP[c.g] * c.u, u: a.u + c.u } : a, { p: 0, u: 0 });
+// 修得年度の順（「2025後期*」→ 2025.5）
+const termKey = t => { const m = String(t || "").match(/(20\d\d)(前期|後期)?/); return m ? Number(m[1]) + (m[2] === "後期" ? 0.5 : 0) : 0; };
+// 再履修：D・Fの科目を再履修すると、新しい評価に置き換わる（分母は変わらない）
+function effective(cs) {
+  const out = [], last = new Map();
+  for (const c of [...cs].sort((a, b) => termKey(a.t) - termKey(b.t))) {
+    const k = norm(c.n), prev = last.get(k);
+    if (prev && (prev.g === "D" || prev.g === "F")) { out[out.indexOf(prev)] = c; last.set(k, c); continue; }
+    out.push(c); last.set(k, c);
+  }
+  return out;
+}
 
 /* ---------- 計算 ---------- */
 function compute() {
-  const cs = state.courses || [];
-  const find = name => cs.filter(c => norm(c.n) === norm(name));
+  const cs = effective(state.courses || []);
   const status = list => list.map(([name, u]) => {
-    const rows = find(name);
+    const rows = (state.courses || []).filter(c => norm(c.n) === norm(name)).sort((a, b) => termKey(a.t) - termKey(b.t));
     const done = rows.find(c => PASS.includes(c.g));
     return { name, u, rows, done: !!done, g: rows.map(c => c.g).join("→") };
   });
   const req = status(REQUIRED), ele = status(ELECTIVE);
   const reqNames = new Set(REQUIRED.map(r => norm(r[0])));
   const all = sumGpa(cs);
-  const reqG = sumGpa(cs.filter(c => reqNames.has(norm(c.n))));
+  const reqCs = cs.filter(c => reqNames.has(norm(c.n)));
+  const reqG = sumGpa(reqCs);
   const earned = state.total != null ? state.total : cs.reduce((a, c) => a + (PASS.includes(c.g) ? c.u : 0), 0);
   const reqLeft = req.filter(r => !r.done);
   const reqLeftUnits = reqLeft.reduce((a, r) => a + r.u, 0);
+  // Fの科目は再履修で置き換わるので、GPAの「残り」には、まだ評価のない科目だけを数える
+  const reqNewUnits = reqLeft.filter(r => !r.rows.some(c => c.g in GP)).reduce((a, r) => a + r.u, 0);
   const eleDone = ele.filter(r => r.done).length;
   const eleLeft = Math.max(0, ELECTIVE_NEED - eleDone);
   const minPlan = reqLeftUnits + eleLeft * 2;
   const defPlan = Math.max(TOTAL - earned, minPlan);
   const plan = state.plan != null ? state.plan : defPlan;
-  return { req, ele, all, reqG, earned, reqLeft, reqLeftUnits, eleDone, eleLeft, plan, defPlan };
+  return { cs, reqCs, reqNewUnits, req, ele, all, reqG, earned, reqLeft, reqLeftUnits, eleDone, eleLeft, plan, defPlan };
 }
 
 // 残りR単位で、GPAを基準に届かせるには
@@ -68,6 +82,14 @@ function advice(g, R, target, canAdd) {
   const b = Math.ceil(N / R - 1e-9) - 1; // 1〜3
   const k = Math.ceil(N - b * R - 1e-9);
   return { k: "move", t: k >= R ? `残りの${R}単位を、すべて${LABEL[b + 1]}以上にすれば届きます。` : `残りの${R}単位のうち、${LABEL[b + 1]}を${k}単位以上、ほかを${LABEL[b]}以上にすれば届きます。` };
+}
+// 再履修できる科目（D・F）と、Aを取ったときに上がるGPA
+function retake(how, list, g, R) {
+  if (how.k === "ok") return how;
+  const cand = list.filter(c => c.g === "D" || c.g === "F").map(c => ({ c, up: (4 - GP[c.g]) * c.u / (g.u + R) })).sort((a, b) => b.up - a.up);
+  if (!cand.length) return how;
+  const lines = cand.slice(0, 3).map(x => `${esc(x.c.n)}（${x.c.g}）を再履修してAを取ると、GPAが${(Math.floor(x.up * 100 + 1e-9) / 100).toFixed(2)}上がります。`);
+  return { k: how.k, t: how.t, more: lines };
 }
 function addMore(g, target) {
   if (target >= 4) return "";
@@ -90,7 +112,8 @@ function render() {
   for (let i = 0; i <= Math.max(60, c.plan); i++) opts += `<option value="${i}"${i === c.plan ? " selected" : ""}>${i}</option>`;
   const planNote = c.plan < TOTAL - c.earned ? `<span>あと${TOTAL - c.earned}単位が必要です。</span>` : "";
 
-  const row = (name, val, how) => `<div class="grow"><span class="name">${name}</span><span class="val num">${val}</span><p class="how ${how.k}">${how.t}</p></div>`;
+  const row = (name, val, how) => `<div class="grow"><span class="name">${name}</span><span class="val num">${val}</span><p class="how ${how.k}">${how.t}</p>`
+    + (how.more ? how.more.map(t => `<p class="how move">${t}</p>`).join("") : "") + `</div>`;
   const goals = GOALS.map(G => {
     const items = [];
     const unitsOk = c.earned >= TOTAL;
@@ -100,9 +123,9 @@ function render() {
     const eleRest = c.ele.filter(r => !r.done).map(r => r.name);
     items.push(row("選択必修", `${c.eleDone} / ${ELECTIVE_NEED}科目`,
       c.eleLeft ? { k: "bad", t: `あと${c.eleLeft}科目です（${eleRest.join("・")}${eleRest.length > c.eleLeft ? "から選択" : ""}）。` } : { k: "ok", t: "修得しています。" }));
-    const a1 = advice(c.reqG, c.reqLeftUnits, G.req, false);
+    const a1 = retake(advice(c.reqG, c.reqNewUnits, G.req, false), c.reqCs, c.reqG, c.reqNewUnits);
     items.push(row("必修科目のGPA", `${c.reqG.u ? fmt(c.reqG.p / c.reqG.u) : "－"} / ${fmt(G.req)}`, a1));
-    const a2 = advice(c.all, c.plan, G.all, true);
+    const a2 = retake(advice(c.all, c.plan, G.all, true), c.cs, c.all, c.plan);
     items.push(row("全修得単位のGPA", `${c.all.u ? fmt(c.all.p / c.all.u) : "－"} / ${fmt(G.all)}`, a2));
     const gpaBad = a1.k === "bad" || a2.k === "bad";
     const allOk = unitsOk && !c.reqLeft.length && !c.eleLeft && a1.k === "ok" && a2.k === "ok";
@@ -130,12 +153,14 @@ function parsePage(items) {
     const unitH = items.filter(i => i.s === "単位" && near(i.y, h.y, 3) && i.x > h.x).sort((a, b) => a.x - b.x)[0];
     const gradeH = items.filter(i => i.s === "評価" && near(i.y, h.y, 3) && i.x > h.x).sort((a, b) => a.x - b.x)[0];
     if (!unitH || !gradeH) continue;
+    const termH = items.filter(i => i.s === "修得年度" && near(i.y, h.y, 3) && i.x > gradeH.x).sort((a, b) => a.x - b.x)[0];
     for (const g of items) {
       const letter = g.s.normalize("NFKC");
       if (!/^[ABCDFPR]$/.test(letter) || g.y >= h.y || !near(g.x, gradeH.x, 10)) continue;
       const u = items.find(i => /^\d+$/.test(i.s) && near(i.y, g.y, 3) && near(i.x, unitH.x, 14));
       const name = items.filter(i => near(i.y, g.y, 3) && i.x > h.x + 20 && i.x < unitH.x - 8).sort((a, b) => a.x - b.x).map(i => i.s).join("");
-      if (u && name) courses.push({ n: name, u: parseInt(u.s, 10), g: letter });
+      const t = termH && items.find(i => /^20\d\d/.test(i.s) && near(i.y, g.y, 3) && near(i.x, termH.x, 14));
+      if (u && name) courses.push({ n: name, u: parseInt(u.s, 10), g: letter, t: t ? t.s : "" });
     }
   }
   // 「単位修得状況」の【合計】の修得単位
