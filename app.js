@@ -115,7 +115,9 @@ function stateHtml(s) {
 function rowHtml(k, s) {
   const d = s.d, st = values();
   const moves = s.moves.length ? `<div class="moves">${s.moves.map(m => `<div class="move">${esc(m)}</div>`).join("")}</div>` : "";
+  // 成績表を読み込んだときは、成績表の数字を書き換えられないようにする（試すときは「これから修得する予定」を使う）
   const field = d.calc ? `<div class="calcval num">${s.have}</div>`
+    : state.fromPdf ? `<div class="fixedval num">${st.v[k] || 0}</div>`
     : `<input id="in-${k}" type="number" inputmode="numeric" min="0" step="1" value="${k in RAW ? esc(RAW[k]) : (st.v[k] || 0)}" aria-label="${esc(d.name)}の修得単位数">`;
   const det = d.list ? `<details><summary>対象の科目</summary><p>${esc(d.list)}</p></details>` : "";
   const pv = (st.plan || {})[k] || "";
