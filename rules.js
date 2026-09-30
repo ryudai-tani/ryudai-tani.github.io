@@ -23,7 +23,7 @@ function langRows(total, second, extra) {
     langFr: { name: "フランス語", need: 0, lang: true, pdf: ["仏語"] },
     langEs: { name: "スペイン語", need: 0, lang: true, pdf: ["スペイン"] },
     langZh: { name: "中国語", need: 0, lang: true, pdf: ["中国語"] },
-    langOther: { name: "そのほかの外国語", need: 0, lang: true, pdf: ["外国語他"] },
+    langOther: { name: "そのほかの外国語（韓国語など）", need: 0, lang: true, pdf: ["外国語他"] },
     lang1: { name: "第1外国語", need: 8, role: "langpart", calc: { max: LANG_KEYS } },
     lang2: { name: "第2外国語", need: second, role: "langpart", calc: { second: LANG_KEYS } },
     // 第1・第2外国語を満たせば合計も満たすので、合計の欄は出さない
