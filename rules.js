@@ -125,6 +125,8 @@ function kokuhouRule(year, L, opt) {
   const oldK = year <= 2024;
   return {
     ...KOKUHOU_BASE,
+    // 2024年度入学まで：法学プログラムでは、学科発展科目の基礎社会保障法をプログラム発展科目として数える
+    shaho: !!opt.shahoNote,
     id: "jinsha-kokusaihosei-" + year, year,
     source: `${year}年度入学者用の学生便覧（人文社会学部規程 別表・国際法政学科）`,
     pdfSupported: oldK,

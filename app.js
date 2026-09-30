@@ -41,6 +41,10 @@ function compute() {
     S[k] = { d, have, eff: have, need: d.need || 0, moves: [], recv: [] };
   }
   const order = r.sections.flatMap(s => s.groups.flatMap(g => g.rows));
+  if (values().shahoMoved && S.lawDev && S.progDev) {
+    S.lawDev.moves.push("基礎社会保障法の2単位を、プログラム発展科目として数えました");
+    S.progDev.moves.push("学科発展科目の基礎社会保障法2単位を含みます");
+  }
   // 要件を超えた分を振替先へ（並び順に流す）
   for (const k of order) {
     const s = S[k];
@@ -217,7 +221,20 @@ function parseRecord(items) {
     v[k] = sum; if (any) found++;
   }
   if (found < want * 0.7) return null;
-  return { rule: r, program: prog, v };
+  // 基礎社会保障法が成績表で「学科発展科目(法学)」の下にあれば、2単位をプログラム発展科目へ移す
+  let shahoMoved = 0;
+  if (r.shaho && prog === "law") {
+    const name = items.find(i => i.s === "基礎社会保障法");
+    if (name) {
+      const heads = items.filter(i => /^［.*］$/.test(i.s)).sort((a, b) => a.x - b.x || b.y - a.y);
+      // 同じ列で上にある見出し。列の先頭なら、左の列の最後の見出し
+      const sameCol = heads.filter(h => Math.abs(h.x - name.x) < 8 && h.y > name.y).sort((a, b) => a.y - b.y)[0];
+      const prevCol = heads.filter(h => h.x < name.x - 8).sort((a, b) => b.x - a.x || a.y - b.y)[0];
+      const head = sameCol || prevCol;
+      if (head && head.s.includes("学科発展") && (v.lawDev || 0) >= 2) { v.lawDev -= 2; v.progDev = (v.progDev || 0) + 2; shahoMoved = 2; }
+    }
+  }
+  return { rule: r, program: prog, v, shahoMoved };
 }
 
 let pdfReady = null;
@@ -253,7 +270,7 @@ async function readPdf(file) {
     }
     if (!result || !result.rule) { setStatus("成績表の「単位修得状況」が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
     state.ruleId = result.rule.id; state.program = result.program;
-    state.data[result.rule.id] = { v: { ...result.v } }; state.open = true; state.fromPdf = true; state.plan = false; state.loadedAt = Date.now();
+    state.data[result.rule.id] = { v: { ...result.v }, shahoMoved: result.shahoMoved || 0 }; state.open = true; state.fromPdf = true; state.plan = false; state.loadedAt = Date.now();
     Object.keys(RAW).forEach(k => delete RAW[k]);
     save(); render();
     $("status").hidden = true;
