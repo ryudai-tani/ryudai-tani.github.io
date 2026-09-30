@@ -177,7 +177,8 @@ function render() {
     + `<table class="courses">${head("必修科目", "評価", "見込み")}<tbody>${c.req.map(tr).join("")}</tbody></table>`
     // 表を見ているあいだ、画面の下にGPAを出す（上のGPAまで遠いため）
     + `<div class="floatgpa"><span>${c.preds.length ? "見込みを入れたGPA" : "いまのGPA"}</span>`
-    + `<span>必修科目 <b class="num">${c.reqG.u ? fmt(c.reqG.p / c.reqG.u) : "－"}</b></span><span>全修得単位 <b class="num">${c.all.u ? fmt(c.all.p / c.all.u) : "－"}</b></span></div></section>`;
+    + [["必修科目", c.reqG, "req"], ["全修得単位", c.all, "all"]].map(([label, g, key]) => `<span class="fg">${label} <b class="num">${g.u ? fmt(g.p / g.u) : "－"}</b>`
+      + `<small>${GOALS.map(G => `${G.short} ${fmt(G[key])}`).join("・")}</small></span>`).join("") + `</div></section>`;
   const predNote = c.preds.length ? `<p class="plan-note">見込みの評価を入れて計算しています。 <button type="button" class="linkbtn" id="clearPred">見込みを消す</button></p>` : "";
 
   $("result").innerHTML = predNote + `<div class="gpas">${gpaCard("全修得単位のGPA", c.all, "all")}${gpaCard("法曹コース必修科目のGPA", c.reqG, "req")}</div>`

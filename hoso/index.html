@@ -143,6 +143,8 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .floatgpa{position:sticky;bottom:10px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;background:var(--surface);border:1px solid var(--accent);border-radius:10px;padding:8px 14px;font-size:.88rem;box-shadow:0 4px 14px rgba(0,0,0,.15)}
 .floatgpa span:first-child{color:var(--muted);flex-basis:100%;font-size:.8rem}
 .floatgpa b{font-size:1.15rem}
+.floatgpa .fg{display:flex;flex-direction:column}
+.floatgpa small{font-size:.75rem;color:var(--muted)}
 /* パソコンの広い画面では、右の余白にずっと出す */
 @media (min-width:1300px){ .floatgpa{position:fixed;top:50%;transform:translateY(-50%);bottom:auto;left:calc(50% + 446px);width:190px;flex-direction:column;gap:4px} .floatgpa span:first-child{flex-basis:auto} body:not(.table-on) .floatgpa{display:none} }
 .courses thead th{background:var(--bar);font-weight:700}
