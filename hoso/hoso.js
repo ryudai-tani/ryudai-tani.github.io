@@ -172,7 +172,7 @@ function render() {
     + ["", "A", "B", "C", "D", "F"].map(g => `<option value="${g}"${(pred[r.name] || "") === g ? " selected" : ""}>${g || "－"}</option>`).join("") + `</select>` : "";
   const tr = r => `<tr><td>${esc(r.name)}</td><td class="num">${r.u}</td><td${r.rows.length ? "" : ' class="miss"'}>${r.rows.length ? esc(r.g) : "未修得"}</td><td>${sel(r)}</td></tr>`;
   const head = (name, col, pred) => `<thead><tr><th>${name}</th><th>単位</th><th>${col}</th><th>${pred}</th></tr></thead>`;
-  const table = `<section class="goal"><div class="sechead"><h2>法曹コースの科目の成績</h2></div>`
+  const table = `<section class="goal" id="courseSec"><div class="sechead"><h2>法曹コースの科目の成績</h2></div>`
     + `<p class="goalnote">必修科目のうち、まだ修得していない科目と、D・Fの科目（再履修できる科目）は、見込みの評価を選ぶと、上の判定に反映されます。</p>`
     + `<table class="courses">${head("必修科目", "評価", "見込み")}<tbody>${c.req.map(tr).join("")}</tbody></table>`
     // 表を見ているあいだ、画面の下にGPAを出す（上のGPAまで遠いため）
@@ -184,13 +184,13 @@ function render() {
     + goals + table;
   watchGpas();
 }
-// パソコンの広い画面：上のGPAが画面から見えなくなったときだけ、右の余白にGPAを出す
+// パソコンの広い画面：「法曹コースの科目の成績」の表が画面に入っているあいだだけ、右の余白にGPAを出す
 let gpaObserver = null;
 function watchGpas() {
-  const el = document.querySelector(".gpas");
-  if (!el || !window.IntersectionObserver) { document.body.classList.add("gpas-off"); return; }
+  const el = document.getElementById("courseSec");
+  if (!el || !window.IntersectionObserver) { document.body.classList.add("table-on"); return; }
   if (gpaObserver) gpaObserver.disconnect();
-  gpaObserver = new IntersectionObserver(es => document.body.classList.toggle("gpas-off", !es[0].isIntersecting));
+  gpaObserver = new IntersectionObserver(es => document.body.classList.toggle("table-on", es[0].isIntersecting));
   gpaObserver.observe(el);
 }
 
