@@ -216,7 +216,7 @@ async function readPdf(file) {
     state.data[result.rule.id] = { v: { ...result.v } }; state.open = true;
     Object.keys(RAW).forEach(k => delete RAW[k]);
     save(); render();
-    setStatus(`成績表を読み込みました（${result.rule.faculty} ${result.rule.dept}・${result.rule.year}年度入学）。振替を計算した結果を表示しています。`, true);
+    setStatus("成績表を読み込みました。", true);
   } catch (e) {
     console.error(e);
     setStatus("PDFを読み込めませんでした。ファイルを選び直すか、数字を入力してください。", false);
