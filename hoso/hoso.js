@@ -174,7 +174,7 @@ function render() {
   const tr = r => `<tr><td>${esc(r.name)}</td><td class="num">${r.u}</td><td${r.rows.length ? "" : ' class="miss"'}>${r.rows.length ? esc(r.g) : "未修得"}</td><td>${sel(r)}</td></tr>`;
   const head = (name, col, pred) => `<thead><tr><th>${name}</th><th>単位</th><th>${col}</th><th>${pred}</th></tr></thead>`;
   const table = `<section class="goal" id="courseSec"><div class="sechead"><h2>法曹コースの科目の成績</h2></div>`
-    + `<p class="goalnote">必修科目のうち、まだ修得していない科目と、D・Fの科目（再履修できる科目）は、見込みの評価を選ぶと、上の判定に反映されます。</p>`
+    + `<p class="goalnote">必修科目のうち、まだ修得していない科目と再履修できる科目（D・Fの科目）は、見込みの評価を選ぶと、GPAと、修了・早期卒業の判定に反映されます。</p>`
     + `<table class="courses">${head("必修科目", "評価", "見込み")}<tbody>${c.req.map(tr).join("")}</tbody></table>`
     // 表を見ているあいだ、画面の下にGPAを出す（上のGPAまで遠いため）
     + `<div class="floatgpa"><span>${c.preds.length ? "見込みを入れたGPA" : "いまのGPA"}</span>`
