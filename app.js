@@ -33,11 +33,11 @@ function compute() {
   for (const k of keys) {
     const d = def(k);
     const keysOf = d.calc ? (d.calc.sum || d.calc.max || d.calc.second) : [];
-    // 第1・第2外国語は成績表の単位の多い順で決め、予定の単位ではその言語が変わらないようにする
-    const ranked = [...keysOf].sort((a, b) => (v[b] || 0) - (v[a] || 0) || val(b) - val(a));
+    // 第1・第2外国語は成績表の単位だけで判定する（予定の単位は合計にだけ足す）
+    const ranked = keysOf.map(x => v[x] || 0).sort((a, b) => b - a);
     const have = !d.calc ? val(k)
-      : d.calc.max ? (ranked[0] ? val(ranked[0]) : 0)
-      : d.calc.second ? (ranked[1] ? val(ranked[1]) : 0)
+      : d.calc.max ? (ranked[0] || 0)
+      : d.calc.second ? (ranked[1] || 0)
       : keysOf.reduce((a, x) => a + val(x), 0);
     S[k] = { d, have, eff: have, need: d.need || 0, moves: [], recv: [] };
   }
