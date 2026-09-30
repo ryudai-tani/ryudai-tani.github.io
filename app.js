@@ -113,7 +113,7 @@ function rowHtml(k, s) {
   const det = d.list ? `<details><summary>対象の科目</summary><p>${esc(d.list)}</p></details>` : "";
   const pv = (st.plan || {})[k] || "";
   const planField = state.plan && !d.calc
-    ? `<label class="planrow">これから修得する予定<select id="pl-${k}"><option value="0">－</option>${Array.from({ length: 20 }, (_, i) => i + 1).map(n => `<option value="${n}"${n === pv ? " selected" : ""}>${n}</option>`).join("")}</select>単位</label>` : "";
+    ? `<label class="planrow">これから修得する予定<select id="pl-${k}">${Array.from({ length: 11 }, (_, n) => `<option value="${n}"${n === (pv || 0) ? " selected" : ""}>${n}</option>`).join("")}</select>単位</label>` : "";
   return `<div class="row${d.calc ? " calc" : ""}"><div class="name">${esc(d.name)}${d.hint ? `<small>${esc(d.hint)}</small>` : ""}</div>${field}<div class="state">${stateHtml(s)}</div>${planField}${moves}${det}</div>`;
 }
 
