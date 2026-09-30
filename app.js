@@ -80,7 +80,7 @@ function compute() {
 
 /* ---------- 表示 ---------- */
 function stateHtml(s) {
-  if (!s.need) return `<span class="pill free">要件なし</span>`;
+  if (!s.need) return "";
   const done = s.eff >= s.need;
   const pct = Math.min(100, s.eff / s.need * 100);
   const pill = done ? `<span class="pill ok">達成</span>` : `<span class="pill bad">あと <span class="num">${s.need - s.eff}</span> 単位</span>`;
