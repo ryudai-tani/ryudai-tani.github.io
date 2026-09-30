@@ -27,7 +27,12 @@ function compute() {
   const S = {};
   for (const k of keys) {
     const d = def(k);
-    const have = d.calc ? d.calc.sum.reduce((a, x) => a + (v[x] || 0), 0) : (v[k] || 0);
+    const vals = d.calc ? (d.calc.sum || d.calc.max || d.calc.second).map(x => v[x] || 0) : [];
+    const sorted = [...vals].sort((a, b) => b - a);
+    const have = !d.calc ? (v[k] || 0)
+      : d.calc.max ? (sorted[0] || 0)
+      : d.calc.second ? (sorted[1] || 0)
+      : vals.reduce((a, x) => a + x, 0);
     S[k] = { d, have, eff: have, need: d.need || 0, moves: [], recv: [] };
   }
   const order = r.sections.flatMap(s => s.groups.flatMap(g => g.rows));
@@ -75,7 +80,9 @@ function compute() {
   const partGap = keys.filter(k => S[k].d.role === "part").reduce((a, k) => a + gap(k), 0);
   const overlayGap = Math.max(0, ...keys.filter(k => S[k].d.role === "overlay").map(gap));
   const poolGap = S.pool ? gap("pool") : 0;
-  const needMore = topRows.reduce((a, k) => a + gap(k), 0) + pos(Math.max(partGap, overlayGap) - poolGap);
+  // 第1・第2外国語は、外国語の合計の内訳
+  const langExtra = S.lang1 ? pos(gap("lang1") + gap("lang2") - gap("lang")) : 0;
+  const needMore = topRows.reduce((a, k) => a + gap(k), 0) + pos(Math.max(partGap, overlayGap) - poolGap) + langExtra;
   const short = order.filter(k => S[k].need > 0 && S[k].eff < S[k].need);
   // 科目区分ごとに足りない単位（見出しに出す）
   // 成績表の「共通計」「専門計」と同じ、振替をする前の修得単位
@@ -135,7 +142,7 @@ function render() {
   renderSelectors();
   $("sections").innerHTML = c.secTotals.map(t =>
     `<section><div class="sechead"><h2>${esc(t.sec.name)}</h2><span class="sechead-r"><span class="num sec-raw">${t.raw} / ${t.sec.need}</span></span></div>` +
-    t.sec.groups.map(g => (g.name ? `<p class="group">${esc(g.name)}</p>` : "") + g.rows.map(k => rowHtml(k, S[k])).join("")).join("") +
+    t.sec.groups.map(g => (g.name ? `<p class="group">${esc(g.name)}</p>` : "") + g.rows.filter(k => !(S[k].d.lang && state.fromPdf && !S[k].have)).map(k => rowHtml(k, S[k])).join("")).join("") +
     `</section>`).join("");
   const sm = $("summary"), done = c.short.length === 0;
   sm.className = "summary" + (done ? " done" : "");

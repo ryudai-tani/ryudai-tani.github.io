@@ -12,6 +12,25 @@ const L_R6 = {"peace": "共生社会入門・共生哲学・社会学原論Ⅰ�
 const L_R7 = {"peace": "共生社会入門・共生哲学・平和共生社会原論Ⅰ・社会福祉原論Ⅰ・心理学概論Ⅰ・琉球アジア研究概論", "law": "憲法Ⅰ（人権）・憲法Ⅱ（統治）・民法Ⅰ（総則）・民法Ⅱ（物権）・刑事人権論・刑事手続と人権・講義国際法・基礎行政法・民法Ⅲ（債権総論）・刑事政策・民法Ⅳ（債権各論）・基礎社会保障法", "pol": "政治過程論・公共政策学・政治思想史・日本政治外交史Ⅰ・日本政治外交史Ⅱ・行政学・地方自治論・国際関係史・国際政治学Ⅰ・国際政治学Ⅱ・比較政治学Ⅰ・比較政治学Ⅱ・国際社会学", "grp": "法と社会・総合環境学概論・琉球アジア研究入門・西洋思想と日本・中国の思想・平和論・沖縄の政治と社会・環境の哲学・核の科学・うちなーぐちあしび・現代の国際関係・女性と社会・沖縄の学力と教育・比較思想文化論・沖縄の基地と戦跡Ⅰ・琉球語入門Ⅰ・宗教と世界・沖縄の基地と戦跡Ⅱ・琉球語入門Ⅱ・人間と宗教・琉球の文学・沖縄の歴史入門・近代日本の社会と表現・琉球の自然・琉球学入門・日本語のはたらき・琉球の自然保護・琉球の自然と人・現代社会のしくみ・沖縄のサンゴ礁・現代沖縄地域論・マスコミと社会・琉球弧の自然誌・ジェンダー学とインターセクショナリティ・人類文化の比較・琉球の地理・環境と文学・戦争と平和の諸問題"};
 const L_R8 = {"peace": "政治学入門・国際関係学入門・共生社会入門・共生哲学・平和共生社会原論Ⅰ・社会福祉原論Ⅰ・心理学概論Ⅰ・琉球アジア研究概論", "law": "憲法Ⅰ（人権）・憲法Ⅱ（統治）・民法Ⅰ（総則）・民法Ⅱ（物権）・刑事人権論・刑事手続と人権・基礎行政法・民法Ⅲ（債権総論）・刑事政策・被害者学・民法Ⅳ（債権各論）・基礎社会保障法・基礎労働法", "pol": "政治過程論・公共政策学・政治思想史・日本政治史Ⅰ・日本政治史Ⅱ・行政学・地方自治論・国際関係史・国際政治学Ⅰ・国際政治学Ⅱ・外交史Ⅰ・外交史Ⅱ・比較政治学Ⅰ・比較政治学Ⅱ・国際社会学", "grp": "法と社会・総合環境学概論・琉球アジア研究入門・西洋思想と日本・中国の思想・平和論・沖縄の政治と社会・現代の国際関係・核の科学・うちなーぐちあしび・比較思想文化論・女性と社会・沖縄の学力と教育・宗教と世界・沖縄の基地と戦跡Ⅰ・琉球語入門Ⅰ・人間と宗教・沖縄の基地と戦跡Ⅱ・琉球語入門Ⅱ・近代日本の社会と表現・琉球の文学・沖縄の歴史入門・日本語のはたらき・琉球の自然・琉球学入門・現代社会のしくみ・琉球の自然保護・琉球の自然と人・マスコミと社会・沖縄のサンゴ礁・現代沖縄地域論・人類文化の比較・琉球弧の自然誌・環境と文学・琉球の地理・ジェンダー学とインターセクショナリティ・戦争と平和の諸問題"};
 
+
+// 外国語：言語ごとの修得単位から、第1外国語（いちばん多い言語）と第2外国語（2番目に多い言語）を判定する
+const LANG_KEYS = ["langEn", "langDe", "langFr", "langEs", "langZh", "langOther"];
+function langRows(total, second, extra) {
+  const e = extra || {};
+  return {
+    langEn: { name: "英語", need: 0, lang: true, pdf: ["英語"] },
+    langDe: { name: "ドイツ語", need: 0, lang: true, pdf: ["独語"] },
+    langFr: { name: "フランス語", need: 0, lang: true, pdf: ["仏語"] },
+    langEs: { name: "スペイン語", need: 0, lang: true, pdf: ["スペイン"] },
+    langZh: { name: "中国語", need: 0, lang: true, pdf: ["中国語"] },
+    langOther: { name: "そのほかの外国語", need: 0, lang: true, pdf: ["外国語他"] },
+    lang1: { name: "第1外国語", need: 8, role: "langpart", calc: { max: LANG_KEYS } },
+    lang2: { name: "第2外国語", need: second, role: "langpart", calc: { second: LANG_KEYS } },
+    lang: { name: "外国語の合計", need: total, calc: { sum: LANG_KEYS }, ...e }
+  };
+}
+const LANG_GROUP_ROWS = [...LANG_KEYS, "lang1", "lang2", "lang"];
+
 const KOKUHOU_BASE = {
   faculty: "人文社会学部", dept: "国際法政学科",
   match: { faculty: "人文社会", dept: "国際法政" },
@@ -63,16 +82,15 @@ function kyotsuOld(L) {
     pool: { name: "その他の領域",
       program: {
         law: { name: "共通教育の合計（外国語・健康運動系を除く）", need: 20, calc: { sum: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho"] } },
-        pol: { name: "共通教育の合計（健康運動系を除く）", need: 32, calc: { sum: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho", "lang"] } } } },
+        pol: { name: "共通教育の合計（健康運動系を除く）", need: 32, calc: { sum: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho", ...LANG_KEYS] } } } },
     peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", pdf: ["(平和共生沖縄理解計)"], list: L.grp },
-    lang: { name: "外国語", hint: "（第1外国語8単位・第2外国語4単位）", need: 12, pdf: ["（外国語計）"],
-      program: { pol: { role: "part" } } }
+    ...langRows(12, 4, { program: { pol: { role: "part" } } })
   };
 }
 const KYOTSU_OLD_GROUPS = [
   { name: "", rows: ["health"] },
   { name: "教養領域・総合領域・基幹領域（情報関係）", rows: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho", "pool", "peaceGroup"] },
-  { name: "基幹領域（外国語）", rows: ["lang"] }
+  { name: "基幹領域（外国語）", rows: LANG_GROUP_ROWS }
 ];
 
 // 共通教育（2025年度入学から）
@@ -89,15 +107,15 @@ function kyotsuNew(L) {
     pool: { name: "その他の領域",
       program: {
         law: { name: "共通教育の合計（外国語・健康運動系を除く）", need: 20, calc: { sum: ["career", "data", "jinsha", "shizen", "ryudai", "global"] } },
-        pol: { name: "共通教育の合計（健康運動系・キャリア・ダイバーシティ科目を除く）", need: 30, calc: { sum: ["data", "jinsha", "shizen", "ryudai", "global", "lang"] } } } },
+        pol: { name: "共通教育の合計（健康運動系・キャリア・ダイバーシティ科目を除く）", need: 30, calc: { sum: ["data", "jinsha", "shizen", "ryudai", "global", ...LANG_KEYS] } } } },
     peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
-    lang: { name: "外国語", hint: "（第1外国語8単位・第2外国語4単位）", need: 12, program: { pol: { role: "part" } } }
+    ...langRows(12, 4, { program: { pol: { role: "part" } } })
   };
 }
 const KYOTSU_NEW_GROUPS = [
   { name: "", rows: ["health", "career"] },
   { name: "その他の領域", rows: ["data", "jinsha", "shizen", "ryudai", "global", "pool", "peaceGroup"] },
-  { name: "外国語", rows: ["lang"] }
+  { name: "外国語", rows: LANG_GROUP_ROWS }
 ];
 
 const EXAMPLE_PROF = { kiban: 6, peace: 6, gakka: 4, lawDev: 18, polDev: 4, progKiban: 0, progDev: 8, free: 2 };
@@ -118,8 +136,8 @@ function kokuhouRule(year, L, opt) {
     // 共通教育の要件を超えた単位を、専門自由科目に回す（10単位まで）
     commonExcess: { cap: 10, to: "free", program: oldK ? { law: ["health", "pool", "lang"], pol: ["health", "pool"] } : { law: ["health", "pool", "lang"], pol: ["health", "career", "pool"] } },
     example: oldK
-      ? { ...EXAMPLE_PROF, health: 2, jinbun: 4, shakai: 2, shizen: 4, sogo: 2, ryudai: 4, career: 0, joho: 2, lang: 12, peaceGroup: 6 }
-      : { ...EXAMPLE_PROF, health: 2, career: 2, data: 2, jinsha: 6, shizen: 4, ryudai: 4, global: 0, lang: 12, peaceGroup: 6 }
+      ? { ...EXAMPLE_PROF, health: 2, jinbun: 4, shakai: 2, shizen: 4, sogo: 2, ryudai: 4, career: 0, joho: 2, langEn: 8, langZh: 4, peaceGroup: 6 }
+      : { ...EXAMPLE_PROF, health: 2, career: 2, data: 2, jinsha: 6, shizen: 4, ryudai: 4, global: 0, langEn: 8, langZh: 4, peaceGroup: 6 }
   };
 }
 
@@ -157,13 +175,13 @@ function kyotsuOldSimple(L, opt) {
     joho: { name: "情報関係科目", need: 2, role: "part" },
     pool: { name: "共通教育の合計（外国語・健康運動系を除く）", need: opt.pool, calc: { sum: parts } },
     peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
-    lang: { name: "外国語", hint: opt.langHint, need: opt.lang }
+    ...langRows(opt.lang, opt.lang2)
   };
 }
 const KYOTSU_OLD_SIMPLE_GROUPS = [
   { name: "", rows: ["health"] },
   { name: "教養領域・総合領域・基幹領域（情報関係）", rows: ["jinbun", "shakai", "shizen", "sogo", "ryudai", "career", "joho", "pool", "peaceGroup"] },
-  { name: "基幹領域（外国語）", rows: ["lang"] }
+  { name: "基幹領域（外国語）", rows: LANG_GROUP_ROWS }
 ];
 
 function ningenRule(year, L) {
@@ -186,7 +204,7 @@ function ningenRule(year, L) {
   };
   let kyotsu, groups, excess;
   if (oldK) {
-    kyotsu = kyotsuOldSimple(L, { pool: 22, career: 2, lang: 12, langHint: "（第1外国語8単位・第2外国語4単位）" });
+    kyotsu = kyotsuOldSimple(L, { pool: 22, career: 2, lang: 12, lang2: 4 });
     groups = KYOTSU_OLD_SIMPLE_GROUPS;
     excess = { cap: 10, rows: ["health", "pool", "lang"] };
   } else {
@@ -201,12 +219,12 @@ function ningenRule(year, L) {
       three: { name: "人文社会科学系・自然科学系・琉大特色の合計", need: 8, role: "part", calc: { sum: ["jinsha", "shizen", "ryudai"] } },
       pool: { name: "共通教育の合計（外国語・健康運動系を除く）", need: 22, calc: { sum: ["data", "career", "jinsha", "shizen", "ryudai", "global"] } },
       peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
-      lang: { name: "外国語", hint: "（第1外国語8単位・第2外国語4単位）", need: 12 }
+      ...langRows(12, 4)
     };
     groups = [
       { name: "", rows: ["health"] },
       { name: "その他の領域", rows: ["data", "career", "jinsha", "shizen", "ryudai", "global", "three", "pool", "peaceGroup"] },
-      { name: "外国語", rows: ["lang"] }
+      { name: "外国語", rows: LANG_GROUP_ROWS }
     ];
     excess = { cap: 6, rows: ["health", "pool", "lang"] };
   }
@@ -225,7 +243,7 @@ function ningenRule(year, L) {
     ],
     rows: { ...prof, ...kyotsu },
     commonExcess: { cap: excess.cap, to: "free", program: Object.fromEntries(programs.map(p => [p.id, excess.rows])) },
-    example: { kiban: 6, peace: 4, gakkaKiban: 6, gakkaDev: 6, coreKiban: 4, coreDev: 8, progDev: 12, free: 4, health: 2, lang: 12, peaceGroup: 6,
+    example: { kiban: 6, peace: 4, gakkaKiban: 6, gakkaDev: 6, coreKiban: 4, coreDev: 8, progDev: 12, free: 4, health: 2, langEn: 8, langZh: 4, peaceGroup: 6,
       ...(oldK ? { jinbun: 4, shakai: 4, shizen: 2, sogo: 2, ryudai: 2, career: 2, joho: 2 } : { data: 2, career: 2, jinsha: 8, shizen: 2, ryudai: 4, global: 0 }) }
   };
 }
@@ -249,7 +267,7 @@ function ryuasiaRule(year, L) {
   };
   let kyotsu, groups, excessRows, commonNeed;
   if (oldK) {
-    kyotsu = kyotsuOldSimple(L, { pool: 18, lang: 16, langHint: "（第1外国語8単位・第2外国語8単位）" });
+    kyotsu = kyotsuOldSimple(L, { pool: 18, lang: 16, lang2: 8 });
     groups = KYOTSU_OLD_SIMPLE_GROUPS;
     excessRows = ["health", "pool", "lang"];
     commonNeed = 36;
@@ -264,12 +282,12 @@ function ryuasiaRule(year, L) {
       global: { name: "グローバル科目", need: 0 },
       pool: { name: "共通教育の合計（健康運動系・データリテラシー・キャリア・ダイバーシティ・外国語を除く）", need: 16, calc: { sum: ["jinsha", "shizen", "ryudai", "global"] } },
       peaceGroup: { name: "うち平和共生・沖縄理解科目群", need: 6, role: "overlay", list: L.grp },
-      lang: { name: "外国語", hint: "（第1外国語8単位・第2外国語4単位）", need: 12 }
+      ...langRows(12, 4)
     };
     groups = [
       { name: "基盤領域", rows: ["health", "data", "career"] },
       { name: "その他の領域", rows: ["jinsha", "shizen", "ryudai", "global", "pool", "peaceGroup"] },
-      { name: "外国語", rows: ["lang"] }
+      { name: "外国語", rows: LANG_GROUP_ROWS }
     ];
     excessRows = ["health", "data", "career", "pool", "lang"];
     commonNeed = 34;
@@ -289,7 +307,7 @@ function ryuasiaRule(year, L) {
     rows: { ...prof, ...kyotsu },
     commonExcess: { cap: 10, to: "free", program: Object.fromEntries(programs.map(p => [p.id, excessRows])) },
     example: { kiban: 6, peace: 4, gakkaKiban: 4, gakkaDev: 4, coreKiban: 8, coreDev: 4, progDev: 12, free: 4, health: 2, peaceGroup: 6,
-      ...(oldK ? { jinbun: 4, shakai: 2, shizen: 2, sogo: 2, ryudai: 4, career: 0, joho: 2, lang: 16 } : { data: 2, career: 2, jinsha: 6, shizen: 2, ryudai: 4, global: 0, lang: 12 }) }
+      ...(oldK ? { jinbun: 4, shakai: 2, shizen: 2, sogo: 2, ryudai: 4, career: 0, joho: 2, langEn: 8, langZh: 8 } : { data: 2, career: 2, jinsha: 6, shizen: 2, ryudai: 4, global: 0, langEn: 8, langZh: 4 }) }
   };
 }
 
