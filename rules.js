@@ -59,7 +59,7 @@ function kokuhouProf(L, opt) {
     progDev: { name: "プログラム発展科目", need: 22, over: "free",
       program: { law: { pdf: ["プロ発展・法学(選択)"] },
                  pol: { pdf: ["プロ発展・政国(選択)"] } } },
-    free: { name: "専門自由科目", sink: true, pdf: ["自由科目"],
+    free: { name: "専門自由科目", sink: true, pdf: ["自由科目", "教職科目"],
       program: { law: { need: 26 }, pol: { need: 22 } } }
   };
 }
