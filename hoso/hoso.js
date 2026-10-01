@@ -173,7 +173,7 @@ function render() {
     + ["", "A", "B", "C", "D", "F"].map(g => `<option value="${g}"${(pred[r.name] || "") === g ? " selected" : ""}>${g || "－"}</option>`).join("") + `</select>` : "";
   const tr = r => `<tr><td>${esc(r.name)}</td><td class="num">${r.u}</td><td${r.rows.length ? "" : ' class="miss"'}>${r.rows.length ? esc(r.g) : "未修得"}</td><td>${sel(r)}</td></tr>`;
   const head = (name, col, pred) => `<thead><tr><th>${name}</th><th>単位</th><th>${col}</th><th>${pred}</th></tr></thead>`;
-  const table = `<section class="goal" id="courseSec"><div class="sechead"><h2>法曹コースの科目の成績</h2></div>`
+  const table = `<section class="goal" id="courseSec"><div class="sechead"><h2>特修法曹コースの科目の成績</h2></div>`
     + `<p class="goalnote">必修科目のうち、まだ修得していない科目と再履修できる科目（D・Fの科目）は、見込みの評価を選ぶと、GPAと、修了・早期卒業の判定に反映されます。</p>`
     + `<table class="courses">${head("必修科目", "評価", "見込み")}<tbody>${c.req.map(tr).join("")}</tbody></table>`
     // 表を見ているあいだ、画面の下にGPAを出す（上のGPAまで遠いため）
@@ -182,7 +182,7 @@ function render() {
       + `<small>${GOALS.map(G => `${G.short} ${fmt(G[key])}`).join("・")}</small></span>`).join("") + `</div></section>`;
   const predNote = c.preds.length ? `<p class="plan-note">見込みの評価を入れて計算しています。 <button type="button" class="linkbtn" id="clearPred">見込みを消す</button></p>` : "";
 
-  $("result").innerHTML = predNote + `<div class="gpas">${gpaCard("全修得単位のGPA", c.all, "all")}${gpaCard("法曹コース必修科目のGPA", c.reqG, "req")}</div>`
+  $("result").innerHTML = predNote + `<div class="gpas">${gpaCard("全修得単位のGPA", c.all, "all")}${gpaCard("特修法曹コース必修科目のGPA", c.reqG, "req")}</div>`
     + goals + table;
   watchGpas();
 }
