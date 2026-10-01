@@ -7,7 +7,7 @@
 - 公開は main に push するだけ（1〜2分で反映）。ビルドなし。費用なし。
 - 返事・報告はすべて日本語。確認してほしいページは公開中のフルURLを書く。
 
-- 問い合わせフォーム（Googleフォーム。持ち主はユーザーのGoogleアカウント。メールアドレスは集めない）：https://docs.google.com/forms/d/e/1FAIpQLScvtxcpapz3gsO3RGyfQ4LEF3Cc-pelRtUEIG0_zjYAiMPQ0Q/viewform 。ページへのリンクはユーザーの指示があるまで貼らない。
+- 問い合わせフォーム（Googleフォーム。持ち主はユーザーのGoogleアカウント。メールアドレスは「確認済み」で集める＝送信にGoogleのログインが必要。説明欄に、法令に基づく求めがあれば提供する旨）：https://docs.google.com/forms/d/e/1FAIpQLScvtxcpapz3gsO3RGyfQ4LEF3Cc-pelRtUEIG0_zjYAiMPQ0Q/viewform 。トップと特修法曹コースのページの注意書きの最後にリンクを貼っている。
 
 ## ファイル
 - `index.html`：見た目（CSS）と画面の枠。スクリプトは、開くたびに最新が届くように `?t=Date.now()` で読み込む（GitHub Pagesは10分キャッシュする）。
