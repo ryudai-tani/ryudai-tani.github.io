@@ -7,6 +7,8 @@
 - 公開は main に push するだけ（1〜2分で反映）。ビルドなし。費用なし。
 - 返事・報告はすべて日本語。確認してほしいページは公開中のフルURLを書く。
 
+- 問い合わせフォーム（Googleフォーム。持ち主はユーザーのGoogleアカウント。メールアドレスは集めない）：https://docs.google.com/forms/d/e/1FAIpQLScvtxcpapz3gsO3RGyfQ4LEF3Cc-pelRtUEIG0_zjYAiMPQ0Q/viewform 。ページへのリンクはユーザーの指示があるまで貼らない。
+
 ## ファイル
 - `index.html`：見た目（CSS）と画面の枠。スクリプトは、開くたびに最新が届くように `?t=Date.now()` で読み込む（GitHub Pagesは10分キャッシュする）。
 - `rules.js`：学科・入学年度ごとの卒業要件（データ）。学科を足すときはここに足す。
