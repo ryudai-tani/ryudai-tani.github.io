@@ -33,7 +33,7 @@
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",sans-serif;font-size:15px;line-height:1.7}
 .wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:calc(28px + env(safe-area-inset-top)) 64px;display:flex;flex-direction:column;gap:22px}
-h1{font-size:1.45rem;margin:0;text-wrap:balance;line-height:1.4}
+h1{font-size:min(1.45rem,calc((100vw - 48px) / 15.6));margin:0;text-wrap:balance;line-height:1.4}
 h2{font-size:1.1rem;margin:0}
 .sub{color:var(--muted);margin:4px 0 0;font-size:.9rem}
 .num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
