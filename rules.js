@@ -351,7 +351,7 @@ window.parseRecord = (function () {
     const hit = nums.find(n => Math.abs(n.y - L.y) <= 4 && n.x >= col - 6 && n.x <= col + 45);
     return hit ? parseInt(hit.s, 10) : 0;
   };
-  const v = {}; let found = 0, want = 0;
+  const v = {}; let found = 0, want = 0, readSum = 0;
   for (const [k, d0] of Object.entries(r.rows)) {
     const d = { ...d0, ...((d0.program || {})[prog] || {}) };
     if (!d.pdf) continue;
@@ -359,6 +359,7 @@ window.parseRecord = (function () {
     let sum = 0, any = false;
     for (const lb of d.pdf) { const x = value(lb); if (x !== null) { sum += x; any = true; } }
     v[k] = sum; if (any) found++;
+    if (d.role !== "overlay") readSum += sum;
   }
   if (found < want * 0.7) return null;
   // 基礎社会保障法が成績表で「学科発展科目(法学)」の下にあれば、2単位をプログラム発展科目へ移す
@@ -374,7 +375,9 @@ window.parseRecord = (function () {
       if (head && head.s.includes("学科発展") && (v.lawDev || 0) >= 2) { v.lawDev -= 2; v.progDev = (v.progDev || 0) + 2; shahoMoved = 2; }
     }
   }
-  return { rule: r, program: prog, v, shahoMoved };
+  // 成績表の【合計】の修得単位。読み取った行の合計と合わなければ、知らない行がある
+  const pdfTotal = value("【合計】");
+  return { rule: r, program: prog, v, shahoMoved, pdfTotal: pdfTotal || null, readSum };
 };
 })();
 

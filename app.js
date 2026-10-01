@@ -157,6 +157,11 @@ function render() {
   $("loadedBar").hidden = !state.fromPdf;
   // いつ読み込んだ成績表かを出し、新しい成績が出たときに読み込み直せるようにする
   if (!state.open) return;
+  // 読み取った単位の合計が成績表の【合計】と合わないとき（ツールの知らない行があるとき）は知らせる
+  const pdfTotal = state.fromPdf && st.pdfTotal;
+  const readSum = Object.keys(rule().rows).filter(k => def(k).pdf && def(k).role !== "overlay").reduce((a, k) => a + (st.v[k] || 0), 0);
+  $("totalNote").hidden = !pdfTotal || readSum === pdfTotal;
+  if (pdfTotal) $("totalNote").textContent = `成績表の合計（${pdfTotal}単位）と、読み取った単位の合計（${readSum}単位）が合いません。「数字を手で直す」で、成績表と同じ数字に直してください。`;
   renderSelectors();
   $("sections").innerHTML = c.secTotals.map(t =>
     `<section><div class="sechead"><h2>${esc(t.sec.name)}</h2><span class="sechead-r"><span class="num sec-raw">${t.raw} / ${t.sec.need}</span></span></div>` +
@@ -238,7 +243,7 @@ async function readPdf(file) {
     }
     if (!result || !result.rule) { setStatus("成績表の「単位修得状況」が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
     state.ruleId = result.rule.id; state.program = result.program;
-    state.data[result.rule.id] = { v: { ...result.v }, shahoMoved: result.shahoMoved || 0 }; state.open = true; state.fromPdf = true; state.plan = false; state.loadedAt = Date.now(); state.hoso = !!isHoso;
+    state.data[result.rule.id] = { v: { ...result.v }, shahoMoved: result.shahoMoved || 0, pdfTotal: result.pdfTotal }; state.open = true; state.fromPdf = true; state.plan = false; state.loadedAt = Date.now(); state.hoso = !!isHoso;
     Object.keys(RAW).forEach(k => delete RAW[k]);
     save(); render();
     $("status").hidden = true;
