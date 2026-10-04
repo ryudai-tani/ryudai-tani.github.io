@@ -1,16 +1,17 @@
 // 時刻はバスなび沖縄の時刻表（2026年10月4日に確認）から写したもの。
 // 日祝の列の印：h＝祝日だけ走る、s＝日曜だけ走る（開南経由）。印のない時刻は日曜・祝日とも走る。
+// 日曜の12〜18時は国際通りがトランジットモールになり、バスは開南経由で走る。行きの s は開南（与儀十字路向け）発の時刻。
 const TIMES = {
   go: { // ホテルコレクティブ前（安謝・古島向け）発
     97: {
       weekday: "6:19 6:48 7:20 7:54 8:22 8:52 9:24 9:50 10:43 11:42 12:17 12:55 13:27 14:05 14:42 15:19 16:04 16:35 17:14 17:54 18:32 19:19 20:14 21:07",
       sat: "6:49 7:49 8:50 9:52 10:52 11:52 12:55 13:47 14:42 15:37 16:43 17:46 18:37 20:11",
-      sunhol: "6:49 7:49 8:50 9:50 10:50 11:50 12:54h 13:45h 14:41h 15:39h 16:44h 17:45h 18:39 20:12",
+      sunhol: "6:49 7:49 8:50 9:50 10:50 11:50 12:54h 13:45h 14:41h 15:39h 16:44h 17:45h 12:53s 13:45s 14:40s 15:39s 16:44s 17:44s 18:39 20:12",
     },
     98: {
       weekday: "6:38 7:04 7:41 8:13 8:38 8:54 9:33 10:09 10:39 11:10 11:45 12:20 13:25 14:05 14:47 15:53 16:33 17:13 17:59 19:00 20:10 21:07 22:05",
       sat: "7:38 8:08 8:56 9:39 10:39 11:45 13:20 14:10 14:54 15:45 16:41 17:31 18:54 20:11 21:36",
-      sunhol: "7:38 8:08 8:56 9:39 10:39 11:45 13:20h 14:10h 14:54h 15:45h 16:41h 17:31h 18:54 20:11 21:36",
+      sunhol: "7:38 8:08 8:56 9:39 10:39 11:45 13:20h 14:10h 14:54h 15:45h 16:41h 17:31h 13:19s 14:09s 14:56s 15:46s 16:40s 17:30s 18:54 20:11 21:36",
     },
   },
   back: { // 琉大北口駐車場（那覇・豊崎向け）発
@@ -68,6 +69,7 @@ function trips(dir, day) {
   return list.sort((a, b) => a.min - b.min || a.route - b.route);
 }
 
+const stopOf = (t) => (t.kainan && state.dir === "go" ? "開南" : STOP[state.dir]);
 const hm = (min) => `${Math.floor(min / 60)}:${pad(min % 60)}`;
 
 const state = { dir: "go", day: null };
@@ -100,7 +102,7 @@ function renderNext() {
       `<span class="badge r${t.route}">${t.route}</span>` +
       `<span class="time num">${hm(t.min)}</span>` +
       `<span class="left"><span>あと</span><br>${wait >= 60 ? `<b>${Math.floor(wait / 60)}</b><span>時間</span><b>${wait % 60}</b>` : `<b>${wait}</b>`}<span>分</span></span>` +
-      `<span class="sub">${STOP[state.dir]} 発${t.kainan ? '<span class="tag">開南経由</span>' : ""}</span>`;
+      `<span class="sub">${stopOf(t)} 発${t.kainan ? `<span class="tag">${state.dir === "go" ? "国際通りを通りません" : "開南経由・ホテルコレクティブ前を通りません"}</span>` : ""}</span>`;
     ul.appendChild(li);
   });
 }
@@ -112,7 +114,7 @@ function renderTable() {
   const nowMin = now.getHours() * 60 + now.getMinutes();
   document.querySelectorAll(".days button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.day === day)));
   $("tt-title").textContent = `${STOP[state.dir]} 発の時刻表`;
-  $("legend-k").style.display = state.dir === "back" && day === "sun" ? "" : "none";
+  $("legend-k").style.display = day === "sun" ? "" : "none";
 
   const byHour = new Map();
   for (const t of trips(state.dir, day)) {
