@@ -99,7 +99,7 @@ function renderNext() {
     li.innerHTML =
       `<span class="badge r${t.route}">${t.route}</span>` +
       `<span class="time num">${hm(t.min)}</span>` +
-      `<span class="left"><span>あと</span><br><b>${wait}</b><span>分</span></span>` +
+      `<span class="left"><span>あと</span><br>${wait >= 60 ? `<b>${Math.floor(wait / 60)}</b><span>時間</span><b>${wait % 60}</b>` : `<b>${wait}</b>`}<span>分</span></span>` +
       `<span class="sub">${STOP[state.dir]} 発${t.kainan ? '<span class="tag">開南経由</span>' : ""}</span>`;
     ul.appendChild(li);
   });
