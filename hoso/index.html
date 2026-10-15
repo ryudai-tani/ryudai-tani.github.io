@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="琉球大学の成績表のPDFを読み込み、特修法曹コースの修了と早期卒業に必要なGPAと単位を表示します。">
+<meta name="description" content="このページは、琉球大学の成績表のPDFを読み込み、特修法曹コースの修了と早期卒業に必要なGPAと単位を表示します。">
 <title>琉球大学 特修法曹コースの修了・早期卒業</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
@@ -157,7 +157,7 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 <div class="wrap">
   <header>
     <h1>特修法曹コースの修了・早期卒業</h1>
-    <p class="sub">琉球大学の成績表を読み込むと、特修法曹コースの修了と早期卒業に必要なGPAと単位を表示します。</p>
+    <p class="sub">このページに琉球大学の成績表を読み込むと、特修法曹コースの修了と早期卒業に必要なGPAと単位が表示されます。</p>
   </header>
 
   <section class="howto" id="howto" aria-labelledby="howto-h">
@@ -165,8 +165,8 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <ol>
       <li>教務システムの成績表を開きます。</li>
       <li>成績表のPDFをスマホかパソコンに保存します。</li>
-      <li>下の「成績表のPDFを選ぶ」を押して、保存したPDFを選びます。</li>
-      <li>GPAと、早期卒業・特修法曹コースの修了に足りないものが表示されます。</li>
+      <li>「成績表のPDFを選ぶ」から、保存したPDFを選びます。</li>
+      <li>GPAと、特修法曹コースの修了・早期卒業に足りないものが表示されます。</li>
     </ol>
     <details class="help">
       <summary>スマホでPDFを保存するには</summary>
@@ -178,7 +178,7 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <span>パソコンでは、PDFをこのページにドラッグしても読み込めます。</span>
       <input type="file" id="file" accept="application/pdf,.pdf">
     </label>
-    <p class="safe">読み込むのは、所属・入学年度と、科目名・単位・評価、科目区分ごとの修得単位だけです。氏名・学籍番号・生年月日は読み込みません。PDFはこのスマホやパソコンの中だけで読み込みます。サーバーに送ったり、保存したりしません。読み込んだ結果は、このスマホやパソコンに24時間だけ残ります。成績がほかの人に見られることはありません。</p>
+    <p class="safe">このページが読み込むのは、所属・入学年度、科目名・単位・評価、科目区分ごとの修得単位だけです。氏名・学籍番号・生年月日は読み込みません。PDFはこのスマホやパソコンの中だけで読み込みます。サーバーに送ったり、保存したりしません。読み込んだ結果は、このスマホやパソコンに24時間だけ残ります。成績がほかの人に見られることはありません。</p>
   </section>
   <div class="loaded" id="loadedBar" hidden>
     <label class="linkbtn">別の成績表を読み込む<input type="file" id="file2" accept="application/pdf,.pdf" hidden></label>
@@ -189,11 +189,11 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <div id="result" hidden></div>
 
   <div class="note">
-    <p>GPAは、成績表と同じく、A＝4・B＝3・C＝2・D＝1・F＝0で計算します。</p>
-    <p>条件は、2026年2月12日の特修法曹コース説明会の資料で確認しています。最終的な判定は、人文社会学部学務係で確認してください。</p>
-    <p>卒業に必要な科目区分ごとの単位は、<a href="../">琉球大学卒業まであと何単位</a>で確認できます。このページで読み込んだ成績表が、そのまま使えます。</p>
-    <p>修正の依頼や、ほしい機能などは、<a href="https://docs.google.com/forms/d/e/1FAIpQLScvtxcpapz3gsO3RGyfQ4LEF3Cc-pelRtUEIG0_zjYAiMPQ0Q/viewform" target="_blank" rel="noopener">問い合わせフォーム</a>からお知らせください。</p>
-    <p>利用者の数を数えるため、Cloudflare のアクセス解析を使っています（Cookie は使わず、成績などの入力した内容は送りません）。</p>
+    <p>このページは、成績表と同じく、A＝4・B＝3・C＝2・D＝1・F＝0でGPAを計算します。</p>
+    <p>このページは、2026年2月12日の特修法曹コース説明会の資料に記載された条件で、修了と早期卒業を判定しています。修了と早期卒業の最終的な判定は、人文社会学部学務係で確認してください。</p>
+    <p>卒業に必要な科目区分ごとの単位は、<a href="../">琉球大学卒業まであと何単位</a>で確認できます。そのページでも、このページで読み込んだ成績表をそのまま使えます。</p>
+    <p>修正の依頼やほしい機能は、<a href="https://docs.google.com/forms/d/e/1FAIpQLScvtxcpapz3gsO3RGyfQ4LEF3Cc-pelRtUEIG0_zjYAiMPQ0Q/viewform" target="_blank" rel="noopener">問い合わせフォーム</a>からお送りください。</p>
+    <p>このページは、利用者の数を数えるため、Cloudflare のアクセス解析を使っています（Cookie は使わず、成績などの入力した内容は送りません）。</p>
   </div>
 </div>
 <script>

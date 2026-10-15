@@ -174,19 +174,19 @@ function render() {
   const planSum = state.plan ? Object.values(st.plan || {}).reduce((a, x) => a + x, 0) : 0;
   const tp = $("togglePlan"); if (tp) tp.textContent = state.plan ? "予定の単位を消して、成績表だけの結果に戻す" : "これから修得する単位を入れて試す";
   const pn = $("planNote");
-  if (pn) { pn.hidden = !planSum; pn.textContent = `予定の${planSum}単位を含めた結果です。`; }
+  if (pn) { pn.hidden = !planSum; pn.textContent = `この結果には、予定の${planSum}単位を含めています。`; }
   const shownTotal = rawTotal + planSum;
   const why = !done && c.remain > r.total - shownTotal && c.short.length === 1
-    ? `<p class="why">合計は${shownTotal}単位ですが、${esc(S[c.short[0]].d.name)}が${S[c.short[0]].need - S[c.short[0]].eff}単位足りないため、あと${c.remain}単位です。</p>`
+    ? `<p class="why">単位の合計は${shownTotal}単位ですが、${esc(S[c.short[0]].d.name)}が${S[c.short[0]].need - S[c.short[0]].eff}単位足りないため、卒業まではあと${c.remain}単位です。</p>`
     : !done && c.remain > r.total - shownTotal
-    ? `<p class="why">合計は${shownTotal}単位ですが、足りない科目区分があるため、あと${c.remain}単位です。</p>` : "";
+    ? `<p class="why">単位の合計は${shownTotal}単位ですが、足りない科目区分があるため、卒業まではあと${c.remain}単位です。</p>` : "";
   sm.innerHTML = (done
     ? `<div class="big num">${shownTotal}<small>/ ${r.total}単位</small></div><div class="msg">卒業要件をすべて満たしています。</div>`
     : `<div class="big num"><small>あと</small>${c.remain}<small>単位</small></div><div><div class="msg">卒業まで、あと${c.remain}単位です。</div><ul>${names}</ul></div>`)
     + `<div class="sumline"><span>合計</span><span class="num">${shownTotal} / ${r.total}</span></div>${why}`
     + `<div class="totalbar" aria-hidden="true"><i style="width:${Math.min(100, c.total / r.total * 100)}%"></i></div>`;
-  $("source").textContent = `${r.faculty} ${r.dept}（${r.year}年度入学）の卒業要件は、${r.source}で計算しています。`;
-  $("transfer").textContent = `選択科目の要件を超えた単位と、共通教育の要件を超えた単位（${r.commonExcess.cap}単位まで）は、専門自由科目に振り替えます。` + (r.transferNote || "");
+  $("source").textContent = `このツールは、${r.faculty} ${r.dept}（${r.year}年度入学）の単位を、${r.source}に記載された卒業要件で計算しています。`;
+  $("transfer").textContent = `選択科目の要件を超えた単位と共通教育の要件を超えた単位（${r.commonExcess.cap}単位まで）は、専門自由科目に振り替えられます。` + (r.transferNote || "");
 }
 
 /* ---------- 成績表PDFの読み込み ---------- */
@@ -241,7 +241,7 @@ async function readPdf(file) {
       if (result.rule) { state.ruleId = result.rule.id; state.program = result.program || null; state.open = true; save(); render(); }
       setStatus(result.error, false); return;
     }
-    if (!result || !result.rule) { setStatus("成績表の「単位修得状況」が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
+    if (!result || !result.rule) { setStatus("成績表の「単位修得状況」が見つかりませんでした。選んだファイルが教務システムの成績表のPDFかを確認してください。", false); return; }
     state.ruleId = result.rule.id; state.program = result.program;
     state.data[result.rule.id] = { v: { ...result.v }, shahoMoved: result.shahoMoved || 0, pdfTotal: result.pdfTotal }; state.open = true; state.fromPdf = true; state.plan = false; state.loadedAt = Date.now(); state.hoso = !!isHoso;
     Object.keys(RAW).forEach(k => delete RAW[k]);

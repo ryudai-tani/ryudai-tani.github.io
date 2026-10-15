@@ -19,7 +19,7 @@ const ELECTIVE_NEED = 2;
 const TOTAL = 124;
 const GOALS = [
   { name: "法曹コースの修了", short: "修了", all: 3.0, req: 2.6 },
-  { name: "早期卒業", short: "早期卒業", all: 3.3, req: 2.9, note: "早期卒業には、ほかに、琉球大学法科大学院の特別選抜に合格し、入学を確約することが必要です。" },
+  { name: "早期卒業", short: "早期卒業", all: 3.3, req: 2.9, note: "早期卒業するには、ほかに琉球大学法科大学院の特別選抜に合格し、入学を確約することが必要です。" },
 ];
 const GP = { A: 4, B: 3, C: 2, D: 1, F: 0 };
 const PASS = ["A", "B", "C", "D", "P", "R"];
@@ -174,13 +174,13 @@ function render() {
   const tr = r => `<tr><td>${esc(r.name)}</td><td class="num">${r.u}</td><td${r.rows.length ? "" : ' class="miss"'}>${r.rows.length ? esc(r.g) : "未修得"}</td><td>${sel(r)}</td></tr>`;
   const head = (name, col, pred) => `<thead><tr><th>${name}</th><th>単位</th><th>${col}</th><th>${pred}</th></tr></thead>`;
   const table = `<section class="goal" id="courseSec"><div class="sechead"><h2>特修法曹コースの科目の成績</h2></div>`
-    + `<p class="goalnote">必修科目のうち、まだ修得していない科目と再履修できる科目（D・Fの科目）は、見込みの評価を選ぶと、GPAと、修了・早期卒業の判定に反映されます。</p>`
+    + `<p class="goalnote">必修科目のうち、まだ修得していない科目と再履修できる科目（D・Fの科目）に見込みの評価を選ぶと、その評価がGPAと修了・早期卒業の判定に反映されます。</p>`
     + `<table class="courses">${head("必修科目", "評価", "見込み")}<tbody>${c.req.map(tr).join("")}</tbody></table>`
     // 表を見ているあいだ、画面の下にGPAを出す（上のGPAまで遠いため）
     + `<div class="floatgpa"><span>${c.preds.length ? "見込みを入れたGPA" : "いまのGPA"}</span>`
     + [["全修得単位", c.all, "all"], ["必修科目", c.reqG, "req"]].map(([label, g, key]) => `<span class="fg">${label} <b class="num">${g.u ? fmt(g.p / g.u) : "－"}</b>`
       + `<small>${GOALS.map(G => `${G.short} ${fmt(G[key])}`).join("・")}</small></span>`).join("") + `</div></section>`;
-  const predNote = c.preds.length ? `<p class="plan-note">見込みの評価を入れて計算しています。 <button type="button" class="linkbtn" id="clearPred">見込みを消す</button></p>` : "";
+  const predNote = c.preds.length ? `<p class="plan-note">このページは、見込みの評価を入れて計算しています。 <button type="button" class="linkbtn" id="clearPred">見込みを消す</button></p>` : "";
 
   $("result").innerHTML = predNote + `<div class="gpas">${gpaCard("全修得単位のGPA", c.all, "all")}${gpaCard("特修法曹コース必修科目のGPA", c.reqG, "req")}</div>`
     + goals + table;
@@ -241,7 +241,7 @@ async function readPdf(file) {
       // 元のページ（卒業まであと何単位）の科目区分ごとの単位も読む
       if (window.parseRecord && !(main && main.rule)) { try { main = window.parseRecord(items) || main; } catch (e) {} }
     }
-    if (!courses.length) { setStatus("成績表の科目が見つかりませんでした。教務システムの成績表のPDFか確認してください。", false); return; }
+    if (!courses.length) { setStatus("成績表の科目が見つかりませんでした。選んだファイルが教務システムの成績表のPDFかを確認してください。", false); return; }
     state = { courses, total, aff, loadedAt: Date.now() };
     saveForMain(main);
     save(); render();

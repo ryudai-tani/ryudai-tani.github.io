@@ -130,7 +130,7 @@ function kokuhouRule(year, L, opt) {
     id: "jinsha-kokusaihosei-" + year, year,
     source: `${year}年度入学者用の学生便覧（人文社会学部規程 別表・国際法政学科）`,
     pdfSupported: oldK,
-    transferNote: "学科発展科目で、所属プログラムの系が16単位を超えた分は、プログラム発展科目に振り替えます。",
+    transferNote: "学科発展科目で、所属プログラムの系が16単位を超えた分は、プログラム発展科目に振り替えられます。",
     sections: [
       { name: "専門教育科目", need: 90, top: true, groups: PROF_GROUPS },
       { name: "共通教育科目", need: 34, groups: oldK ? KYOTSU_OLD_GROUPS : KYOTSU_NEW_GROUPS }
@@ -234,7 +234,7 @@ function ningenRule(year, L) {
   return {
     id: "jinsha-ningen-" + year, year, faculty: "人文社会学部", dept: "人間社会学科",
     match: { faculty: "人文社会", dept: "人間社会" }, programs, total: 124, pdfSupported: false,
-    transferNote: "学科基盤科目・学科発展科目・プログラムコア発展科目の要件を超えた分は、プログラム発展科目に振り替えます。",
+    transferNote: "学科基盤科目・学科発展科目・プログラムコア発展科目の要件を超えた分は、プログラム発展科目に振り替えられます。",
     source: `${year}年度入学者用の学生便覧（人文社会学部規程 別表・人間社会学科）`,
     sections: [
       { name: "専門教育科目", need: 88, top: true, groups: [
@@ -335,10 +335,10 @@ window.parseRecord = (function () {
   }
   if (!year) { const d = items.find(i => /^20\d\d\/04\/01$/.test(i.s)); if (d) year = Number(d.s.slice(0, 4)); }
   const cands = RULES.filter(x => aff ? aff.includes(x.match.faculty) && aff.includes(x.match.dept) : text.includes(x.match.dept));
-  if (!cands.length) return aff ? { error: `${aff.replace(/\s*20\d\d$/, "").split("・").slice(0, 2).join("・")}は、まだ対応していません。` } : null;
+  if (!cands.length) return aff ? { error: `このツールは、${aff.replace(/\s*20\d\d$/, "").split("・").slice(0, 2).join("・")}にまだ対応していません。` } : null;
   const r = cands.find(x => x.year === year);
-  if (!r) return { error: `${cands[0].dept}の${year}年度入学のルールは、まだありません。` };
-  if (!r.pdfSupported) return { rule: r, error: `${year}年度入学の成績表の読み込みには、まだ対応していません。学部・学科・入学年度を選んだので、成績表の修得単位を入力してください。` };
+  if (!r) return { error: `このツールには、${cands[0].dept}の${year}年度入学の卒業要件がまだありません。` };
+  if (!r.pdfSupported) return { rule: r, error: `このツールは、${year}年度入学の成績表の読み込みにまだ対応していません。成績表の所属から学部・学科・入学年度を選びました。科目区分ごとの修得単位を入力してください。` };
   const prog = (r.programs.find(p => text.includes(p.match)) || r.programs[0]).id;
   const earnedCols = items.filter(i => i.s === "修得単位").map(i => i.x).sort((a, b) => a - b);
   if (!earnedCols.length) return null;
