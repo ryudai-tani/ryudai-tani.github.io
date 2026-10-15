@@ -43,7 +43,7 @@ function compute() {
   }
   const order = r.sections.flatMap(s => s.groups.flatMap(g => g.rows));
   if (values().shahoMoved && S.lawDev && S.progDev) {
-    S.lawDev.moves.push("基礎社会保障法の2単位を、プログラム発展科目として数えました");
+    S.lawDev.moves.push("基礎社会保障法の2単位をプログラム発展科目として数えました");
     S.progDev.moves.push("学科発展科目の基礎社会保障法2単位を含みます");
   }
   // 要件を超えた分を振替先へ（並び順に流す）

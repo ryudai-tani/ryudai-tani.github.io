@@ -47,7 +47,7 @@ function effective(cs) {
 
 /* ---------- 計算 ---------- */
 function compute() {
-  // 見込みの評価（まだ修得していない科目・再履修する科目）を、いちばん新しい成績として足す
+  // 見込みの評価（まだ修得していない科目・再履修する科目）をいちばん新しい成績として足す
   const unitOf = Object.fromEntries([...REQUIRED, ...ELECTIVE]);
   // 見込みを選べるのは、まだ修得していない科目と、D・Fの科目（再履修できる）
   const canPred = n => {
@@ -95,7 +95,7 @@ function advice0(g, R, target, canAdd, what) {
   if (N > 4 * R + 1e-9) return { k: "bad", t: `残りの${what}をすべてAにしても${fmt((g.p + 4 * R) / (g.u + R))}で、届きません。` + (canAdd ? addMore(g, R, target) : "") };
   const b = Math.ceil(N / R - 1e-9) - 1; // 1〜3
   const k = Math.ceil(N - b * R - 1e-9);
-  return { k: "move", what, t: k >= R ? `残りの${what}を、すべて${LABEL[b + 1]}以上にすれば届きます。` : `残りの${what}のうち、${LABEL[b + 1]}を${k}単位以上、ほかを${LABEL[b]}以上にすれば届きます。` };
+  return { k: "move", what, t: k >= R ? `残りの${what}をすべて${LABEL[b + 1]}以上にすれば届きます。` : `残りの${what}のうち、${LABEL[b + 1]}を${k}単位以上、ほかを${LABEL[b]}以上にすれば届きます。` };
 }
 // 再履修できる科目（D・F）と、Aを取ったときに上がるGPA
 function retake(how, list, g, R, target) {
