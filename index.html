@@ -12,7 +12,7 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 :root{
   --bg:#f3f6f6; --surface:#ffffff; --ink:#18262b; --muted:#5b6b70; --line:#d6dfe0;
-  --accent:#0d6b73; --accent-soft:#e2f0f0;
+  --accent:#0d6b73; --accent-soft:#e2f0f0; --sel:#e8eefa; --sel-ink:#14284b; --sel-line:rgba(58,90,150,.5);
   --ok:#2a7a4b; --ok-soft:#e3f2e8; --bad:#b0332a; --bad-soft:#f8e6e3; --move:#3f5d68; --move-soft:#e7eef0;
   --bar:#e6ecec;
 }
@@ -20,7 +20,7 @@ html { scroll-behavior: smooth; }
   :root:not([data-theme="light"]){
     color-scheme:dark;
     --bg:#111a1d; --surface:#182428; --ink:#e4ecec; --muted:#9aabaf; --line:#2c3b40;
-    --accent:#5cc3c9; --accent-soft:#1d3a3e;
+    --accent:#5cc3c9; --accent-soft:#1d3a3e; --sel:#22314d; --sel-ink:#dbe5f7; --sel-line:rgba(150,180,230,.6);
     --ok:#6fcf93; --ok-soft:#1c3527; --bad:#f08a80; --bad-soft:#3d2320; --move:#b9cbd1; --move-soft:#223239;
     --bar:#24343a;
   }
@@ -28,7 +28,7 @@ html { scroll-behavior: smooth; }
 :root[data-theme="dark"]{
   color-scheme:dark;
   --bg:#111a1d; --surface:#182428; --ink:#e4ecec; --muted:#9aabaf; --line:#2c3b40;
-  --accent:#5cc3c9; --accent-soft:#1d3a3e;
+  --accent:#5cc3c9; --accent-soft:#1d3a3e; --sel:#22314d; --sel-ink:#dbe5f7; --sel-line:rgba(150,180,230,.6);
   --ok:#6fcf93; --ok-soft:#1c3527; --bad:#f08a80; --bad-soft:#3d2320; --move:#b9cbd1; --move-soft:#223239;
   --bar:#24343a;
 }
@@ -41,8 +41,8 @@ h2{font-size:1.1rem;margin:0}
 .num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
 .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
-.seg button{border:0;background:transparent;color:var(--ink);font:inherit;padding:8px 14px;cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--accent);color:var(--surface);font-weight:700}
+.seg button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;padding:8px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--sel);color:var(--sel-ink);box-shadow:inset 0 0 0 1px var(--sel-line)}
 .seg button:focus-visible,.btn:focus-visible,input:focus-visible,summary:focus-visible,.drop:focus-within{outline:2px solid var(--accent);outline-offset:2px}
 .btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:.88rem;padding:7px 12px;border-radius:8px;cursor:pointer}
 .drop{display:flex;flex-direction:column;gap:6px;border:1.5px dashed var(--accent);background:var(--accent-soft);border-radius:12px;padding:16px 18px;cursor:pointer}
